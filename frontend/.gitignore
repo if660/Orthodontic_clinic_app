@@ -37,3 +37,5 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+# natywne pliki z VSC do debugowania, które nie powinny być w repozytorium
+.vscode/
