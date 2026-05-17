@@ -1,20 +1,57 @@
 <template>
-  <div class="patients-page">
-    <header class="page-header">
-      <h1>Patients List</h1>
-      <button type="button" class="btn-add" @click="goToAdd">+ Add Patient</button>
-    </header>
+  <PageLayout>
+    <PageHeader
+      title="Lista pacjentów"
+      subtitle="Zarządzaj pacjentami kliniki i ich dokumentacją"
+    >
+      <template #actions>
+        <button type="button" class="app-btn app-btn--primary" @click="goToAdd">
+          <AppIcon name="plus" />
+          <span>Dodaj pacjenta</span>
+        </button>
+      </template>
+    </PageHeader>
 
-    <p v-if="loading" class="status-message">Loading patients…</p>
-    <p v-else-if="error" class="status-message error">{{ error }}</p>
-
-    <PatientTable
-      v-else
-      :patients="patients"
-      @details="onDetails"
-      @edit="onEdit"
-      @delete="onDeleteRequest"
+    <AppAlert
+      v-if="successMessage"
+      :message="successMessage"
+      variant="success"
+      @dismiss="successMessage = null"
     />
+
+    <AppAlert
+      v-if="error"
+      :message="error"
+      variant="error"
+      @dismiss="error = null"
+    />
+
+    <AppSpinner v-if="loading" label="Ładowanie..." />
+
+    <template v-else>
+      <div class="app-toolbar">
+        <div class="app-search">
+          <span class="app-search__icon" aria-hidden="true">
+            <AppIcon name="search" />
+          </span>
+          <input
+            v-model="searchQuery"
+            class="app-search__input"
+            type="search"
+            placeholder="Szukaj pacjenta..."
+            aria-label="Szukaj pacjenta"
+          />
+        </div>
+      </div>
+
+      <PatientTable
+        :patients="filteredPatients"
+        :empty-message="emptyTableMessage"
+        @details="onDetails"
+        @edit="onEdit"
+        @delete="onDeleteRequest"
+      />
+    </template>
 
     <ConfirmDeleteModal
       :visible="deleteModalVisible"
@@ -23,42 +60,81 @@
       @confirm="confirmDelete"
       @cancel="cancelDelete"
     />
-  </div>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getPatients, deletePatient } from '../../services/patientService'
 import PatientTable from '../../components/patients/PatientTable.vue'
 import ConfirmDeleteModal from '../../components/patients/ConfirmDeleteModal.vue'
-import type { Patient } from '../../types/patient'
+import PageLayout from '../../components/common/PageLayout.vue'
+import PageHeader from '../../components/common/PageHeader.vue'
+import AppAlert from '../../components/common/AppAlert.vue'
+import AppSpinner from '../../components/common/AppSpinner.vue'
+import AppIcon from '../../components/common/AppIcon.vue'
+import type { Patient, PatientFlashType } from '../../types/patient'
+import { getFlashMessage, getPatientFullName } from '../../types/patient'
+import { getApiErrorMessage } from '../../utils/apiError'
 
 const router = useRouter()
+const route = useRoute()
 
 const patients = ref<Patient[]>([])
+const searchQuery = ref('')
 const loading = ref(true)
 const error = ref<string | null>(null)
+const successMessage = ref<string | null>(null)
 
 const patientToDelete = ref<Patient | null>(null)
 const deleteModalVisible = ref(false)
 const deleting = ref(false)
 
+const filteredPatients = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+  if (!query) return patients.value
+
+  return patients.value.filter(
+    (patient) =>
+      patient.firstName.toLowerCase().includes(query) ||
+      patient.lastName.toLowerCase().includes(query),
+  )
+})
+
+const emptyTableMessage = computed(() => {
+  if (patients.value.length === 0) {
+    return 'Brak pacjentów'
+  }
+  if (filteredPatients.value.length === 0) {
+    return 'Nie znaleziono pacjentów pasujących do wyszukiwania'
+  }
+  return 'Brak pacjentów'
+})
+
 const patientToDeleteName = computed(() => {
   if (!patientToDelete.value) return ''
-  return `${patientToDelete.value.firstName} ${patientToDelete.value.lastName}`
+  return getPatientFullName(patientToDelete.value) || 'tego pacjenta'
 })
+
+const applyFlashFromQuery = () => {
+  const flash = route.query.flash as PatientFlashType | undefined
+  if (!flash) return
+
+  successMessage.value = getFlashMessage(flash)
+  router.replace({ query: {} })
+}
 
 const loadPatients = async () => {
   loading.value = true
   error.value = null
 
   try {
-    const response = await getPatients()
-    patients.value = response.data
+    patients.value = await getPatients()
   } catch (err) {
     console.error('Error loading patients:', err)
-    error.value = 'Failed to load patients. Please try again later.'
+    error.value = getApiErrorMessage(err, 'Nie udało się załadować listy pacjentów')
+    patients.value = []
   } finally {
     loading.value = false
   }
@@ -90,69 +166,24 @@ const confirmDelete = async () => {
   if (!patientToDelete.value) return
 
   deleting.value = true
+  error.value = null
 
   try {
     await deletePatient(patientToDelete.value.id)
     cancelDelete()
+    successMessage.value = getFlashMessage('deleted')
     await loadPatients()
   } catch (err) {
     console.error('Error deleting patient:', err)
-    error.value = 'Failed to delete patient. Please try again.'
+    error.value = getApiErrorMessage(err, 'Nie udało się usunąć pacjenta. Spróbuj ponownie.')
     cancelDelete()
   } finally {
     deleting.value = false
   }
 }
 
-onMounted(() => {
-  loadPatients()
+onMounted(async () => {
+  applyFlashFromQuery()
+  await loadPatients()
 })
 </script>
-
-<style scoped>
-.patients-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-h1 {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #111827;
-}
-
-.btn-add {
-  padding: 0.625rem 1.25rem;
-  border: none;
-  border-radius: 8px;
-  background-color: #2563eb;
-  color: #ffffff;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.btn-add:hover {
-  background-color: #1d4ed8;
-}
-
-.status-message {
-  margin-top: 1.5rem;
-  color: #6b7280;
-}
-
-.status-message.error {
-  color: #dc2626;
-}
-</style>

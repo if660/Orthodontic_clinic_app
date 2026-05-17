@@ -1,12 +1,18 @@
 import axios from 'axios'
 import type { Patient, PatientFormPayload } from '../types/patient'
+import { normalizePatient } from '../types/patient'
 
 const API_URL = 'http://localhost:5153/api/Patient'
 
-export const getPatients = () => axios.get<Patient[]>(API_URL)
+export const getPatients = async (): Promise<Patient[]> => {
+  const response = await axios.get<Patient[]>(API_URL)
+  return response.data.map((item) => normalizePatient(item))
+}
 
-export const getPatientById = (id: number) =>
-  axios.get<Patient>(`${API_URL}/${id}`)
+export const getPatientById = async (id: number): Promise<Patient> => {
+  const response = await axios.get<Patient>(`${API_URL}/${id}`)
+  return normalizePatient(response.data)
+}
 
 export const createPatient = (patient: PatientFormPayload) =>
   axios.post<Patient>(API_URL, patient)

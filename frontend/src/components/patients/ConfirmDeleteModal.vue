@@ -1,26 +1,37 @@
 <template>
-  <div v-if="visible" class="modal-overlay" @click.self="emit('cancel')">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-title">
-      <h2 id="delete-title">Delete patient</h2>
-      <p>
-        Are you sure you want to delete
-        <strong>{{ patientName }}</strong
-        >? This action cannot be undone.
-      </p>
+  <Teleport to="body">
+    <Transition name="modal-fade">
+      <div v-if="visible" class="modal-overlay" @click.self="emit('cancel')">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+          <h2 id="delete-title">Usuń pacjenta</h2>
+          <p>
+            Czy na pewno chcesz usunąć pacjenta
+            <strong>{{ patientName }}</strong
+            >? Tej operacji nie można cofnąć.
+          </p>
 
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" :disabled="deleting" @click="emit('cancel')">
-          Cancel
-        </button>
-        <button type="button" class="btn-delete" :disabled="deleting" @click="emit('confirm')">
-          {{ deleting ? 'Deleting…' : 'Delete' }}
-        </button>
+          <div class="modal-actions">
+            <button type="button" class="app-btn app-btn--secondary" :disabled="deleting" @click="emit('cancel')">
+              Anuluj
+            </button>
+            <button type="button" class="app-btn btn-delete" :disabled="deleting" @click="emit('confirm')">
+              <AppSpinner v-if="deleting" label="Usuwanie..." inline />
+              <template v-else>
+                <AppIcon name="trash" />
+                Usuń
+              </template>
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
+import AppIcon from '../common/AppIcon.vue'
+import AppSpinner from '../common/AppSpinner.vue'
+
 defineProps<{
   visible: boolean
   patientName: string
@@ -37,7 +48,8 @@ const emit = defineEmits<{
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(17, 24, 39, 0.5);
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -47,23 +59,26 @@ const emit = defineEmits<{
 
 .modal {
   background-color: #ffffff;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
-  max-width: 420px;
+  max-width: 440px;
   width: 100%;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
 }
 
 h2 {
   margin: 0 0 0.75rem;
   font-size: 1.25rem;
-  color: #111827;
+  font-weight: 700;
+  color: var(--color-text);
 }
 
 p {
   margin: 0;
-  color: #4b5563;
-  line-height: 1.5;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+  font-size: 0.9375rem;
 }
 
 .modal-actions {
@@ -71,37 +86,16 @@ p {
   justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 1.5rem;
-}
-
-button {
-  padding: 0.625rem 1.25rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-cancel {
-  background-color: #f3f4f6;
-  color: #374151;
-}
-
-.btn-cancel:hover:not(:disabled) {
-  background-color: #e5e7eb;
+  flex-wrap: wrap;
 }
 
 .btn-delete {
-  background-color: #dc2626;
-  color: #ffffff;
+  background-color: var(--color-delete) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
 }
 
 .btn-delete:hover:not(:disabled) {
-  background-color: #b91c1c;
+  background-color: #b91c1c !important;
 }
 </style>
