@@ -2,13 +2,18 @@
 
 Aplikacja webowa do zarządzania kliniką ortodontyczną stworzona w technologii ASP.NET Core Web API + Vue 3.
 
-Projekt umożliwia zarządzanie pacjentami kliniki, w tym:
+Projekt umożliwia zarządzanie pacjentami oraz lekarzami kliniki, w tym:
 
 * wyświetlanie listy pacjentów,
 * dodawanie pacjentów,
 * edycję danych pacjentów,
 * usuwanie pacjentów,
-* podgląd szczegółów pacjenta.
+* podgląd szczegółów pacjenta,
+* wyświetlanie listy lekarzy,
+* dodawanie lekarzy,
+* edycję danych lekarzy,
+* usuwanie lekarzy,
+* podgląd szczegółów lekarza.
 
 ---
 
@@ -44,12 +49,14 @@ Projekt umożliwia zarządzanie pacjentami kliniki, w tym:
 ## Frontend
 
 * pełny CRUD pacjentów
+* pełny CRUD lekarzy
 * routing frontendowy
 * dynamiczne odświeżanie danych
 * walidacja formularzy
 * loading states
 * komunikaty sukcesu i błędów
 * wyszukiwarka pacjentów
+* wyszukiwarka lekarzy
 * animacje i transitions
 * responsywny interfejs (desktop / tablet / mobile)
 * reusable Vue components
@@ -103,6 +110,28 @@ Swagger:
 http://localhost:5153/swagger
 ```
 
+### Entity Framework CLI
+
+Do obsługi migracji bazy danych wymagane jest narzędzie `dotnet-ef`.
+
+Jeżeli narzędzie nie jest zainstalowane, należy wykonać:
+
+```bash
+dotnet tool install --global dotnet-ef
+```
+
+Jeżeli narzędzie jest już zainstalowane, ale wymaga aktualizacji:
+
+```bash
+dotnet tool update --global dotnet-ef
+```
+
+Aby zastosować migracje i utworzyć lub zaktualizować bazę danych, należy wykonać:
+
+```bash
+dotnet ef database update
+```
+
 ---
 
 ## Frontend
@@ -151,6 +180,29 @@ Dodatkowo:
 * animacje przejść,
 * responsywność,
 * wyszukiwarka pacjentów.
+
+---
+
+# Moduł lekarzy
+
+Moduł lekarzy zawiera:
+
+* listę lekarzy,
+* szczegóły lekarza,
+* formularz dodawania,
+* formularz edycji,
+* usuwanie lekarza z potwierdzeniem.
+
+Dodatkowo:
+
+* walidacja formularzy,
+* komunikaty sukcesu i błędów,
+* modal potwierdzenia usunięcia,
+* wyszukiwarka lekarzy,
+* komponent tabeli lekarzy,
+* komponent formularza lekarza,
+* TypeScript interfaces,
+* połączenie z REST API przez Axios.
 
 ---
 
