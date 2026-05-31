@@ -13,7 +13,8 @@ Projekt umożliwia zarządzanie pacjentami oraz lekarzami kliniki, w tym:
 * dodawanie lekarzy,
 * edycję danych lekarzy,
 * usuwanie lekarzy,
-* podgląd szczegółów lekarza.
+* podgląd szczegółów lekarza,
+* korzystanie z panelu głównego z podstawowym podsumowaniem danych.
 
 ---
 
@@ -48,9 +49,11 @@ Projekt umożliwia zarządzanie pacjentami oraz lekarzami kliniki, w tym:
 
 ## Frontend
 
+* panel główny / dashboard
 * pełny CRUD pacjentów
 * pełny CRUD lekarzy
 * routing frontendowy
+* pasek nawigacji między widokami
 * dynamiczne odświeżanie danych
 * walidacja formularzy
 * loading states
@@ -86,7 +89,7 @@ frontend/
 
 ## Backend
 
-Przejdź do folderu:
+Przejdź do folderu backendu:
 
 ```bash
 cd backend/OrthodonticClinic.Api
@@ -132,11 +135,9 @@ Aby zastosować migracje i utworzyć lub zaktualizować bazę danych, należy wy
 dotnet ef database update
 ```
 
----
-
 ## Frontend
 
-Przejdź do folderu:
+Przejdź do folderu frontendu:
 
 ```bash
 cd frontend
@@ -159,6 +160,21 @@ Frontend działa domyślnie na:
 ```text
 http://localhost:5173
 ```
+
+---
+
+# Panel główny
+
+Panel główny jest stroną startową aplikacji.
+
+Zawiera:
+
+* liczbę pacjentów,
+* liczbę lekarzy,
+* liczbę specjalizacji,
+* podsumowanie lekarzy według specjalizacji,
+* ostatnio dodanych pacjentów,
+* klikalne kafelki prowadzące do wybranych modułów aplikacji.
 
 ---
 

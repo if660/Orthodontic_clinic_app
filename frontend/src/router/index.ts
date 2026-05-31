@@ -1,8 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
+
+import DashboardView from '../views/dashboard/DashboardView.vue'
+
 import PatientsListView from '../views/patients/PatientsListView.vue'
 import PatientAddView from '../views/patients/PatientAddView.vue'
 import PatientEditView from '../views/patients/PatientEditView.vue'
 import PatientDetailsView from '../views/patients/PatientDetailsView.vue'
+
 import DoctorListView from '../views/doctors/DoctorListView.vue'
 import DoctorAddView from '../views/doctors/DoctorAddView.vue'
 import DoctorEditView from '../views/doctors/DoctorEditView.vue'
@@ -13,6 +17,11 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      name: 'dashboard',
+      component: DashboardView,
+    },
+    {
+      path: '/patients',
       name: 'patients',
       component: PatientsListView,
     },
