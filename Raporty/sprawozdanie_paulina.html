@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sprawozdanie indywidualne — Paulina Majerkiewicz</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 11pt; }
+  body { font-family: "Segoe UI", Calibri, Arial, sans-serif; line-height: 1.65; color: #1a1a1a; background: #fff; }
+
+  .page { width: 210mm; min-height: 297mm; padding: 25mm 22mm 20mm; margin: 0 auto; }
+
+  .title-page {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; min-height: 297mm; padding: 30mm 22mm;
+  }
+  .title-page__logo { font-size: 2.4rem; margin-bottom: 2rem; }
+  .title-page h1 { font-size: 1.7rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.4rem; line-height: 1.3; }
+  .title-page h2 { font-size: 1.05rem; font-weight: 400; color: #475569; margin-bottom: 3rem; }
+  .title-page__meta { width: 100%; border-collapse: collapse; max-width: 420px; margin: 0 auto 2rem; font-size: 0.92rem; }
+  .title-page__meta td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
+  .title-page__meta td:first-child { font-weight: 600; color: #475569; width: 45%; }
+
+  h1.section-title {
+    font-size: 1.4rem; font-weight: 700; color: #1e3a8a;
+    margin: 2.5rem 0 0.8rem; padding-bottom: 0.4rem;
+    border-bottom: 2px solid #bfdbfe;
+  }
+  h2.subsection-title { font-size: 1.1rem; font-weight: 700; color: #1e40af; margin: 1.8rem 0 0.6rem; }
+  h3.subsubsection-title { font-size: 1rem; font-weight: 700; color: #1d4ed8; margin: 1.3rem 0 0.4rem; }
+
+  p { margin-bottom: 0.75rem; text-align: justify; }
+  ul, ol { margin: 0.5rem 0 0.8rem 1.4rem; }
+  li { margin-bottom: 0.3rem; }
+  code { font-family: "Consolas", monospace; font-size: 0.85rem; background: #f1f5f9; padding: 0.1rem 0.3rem; border-radius: 3px; }
+  pre { font-family: "Consolas", monospace; font-size: 0.82rem; background: #0f172a; color: #e2e8f0; padding: 1rem 1.2rem; border-radius: 6px; overflow-x: auto; margin: 0.6rem 0 1rem; line-height: 1.45; }
+
+  table.data-table { width: 100%; border-collapse: collapse; margin: 0.8rem 0 1.2rem; font-size: 0.88rem; }
+  table.data-table th { background: #1e40af; color: #fff; padding: 0.5rem 0.7rem; text-align: left; font-weight: 600; }
+  table.data-table td { padding: 0.45rem 0.7rem; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  table.data-table tr:nth-child(even) td { background: #f8fafc; }
+
+  .callout { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 0.7rem 1rem; border-radius: 0 6px 6px 0; margin: 0.6rem 0 1rem; font-size: 0.9rem; color: #1e3a8a; }
+  .tag { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600; margin: 0.1rem; }
+  .tag--blue { background: #dbeafe; color: #1d4ed8; }
+  .tag--green { background: #d1fae5; color: #065f46; }
+  .tag--purple { background: #ede9fe; color: #5b21b6; }
+  .tag--orange { background: #ffedd5; color: #9a3412; }
+
+  .page-break { page-break-after: always; break-after: page; }
+  .no-print { background:#fef3c7; border:2px solid #f59e0b; padding:10px 16px; text-align:center; font-weight:600; font-size:0.9rem; position:sticky; top:0; z-index:999; }
+
+  @media print {
+    body { background: #fff; }
+    .page { width: 100%; padding: 15mm 18mm; }
+    .title-page { min-height: auto; page-break-after: always; }
+    .no-print { display: none; }
+  }
+  @page { margin: 0; size: A4; }
+</style>
+</head>
+<body>
+
+<div class="no-print">ℹ️ Aby zapisać jako PDF: <strong>Ctrl+P</strong> → Drukarka: <strong>Zapisz jako PDF</strong> → Marginesy: <strong>Brak</strong> → Zapisz</div>
+
+<!-- STRONA TYTUŁOWA -->
+<div class="page title-page">
+  <div class="title-page__logo">🦷</div>
+  <h1>Sprawozdanie indywidualne<br/>z realizacji projektu</h1>
+  <h2>Orthodontic Clinic App — aplikacja webowa do zarządzania kliniką ortodontyczną</h2>
+
+  <table class="title-page__meta">
+    <tr><td>Imię i nazwisko</td><td><strong>Paulina Majerkiewicz</strong></td></tr>
+    <tr><td>Nr indeksu</td><td>298528</td></tr>
+    <tr><td>Przedmiot</td><td>Frameworki front-end</td></tr>
+    <tr><td>Grupa</td><td>N22-31</td></tr>
+    <tr><td>Rok akademicki</td><td>2025/2026</td></tr>
+    <tr><td>Repozytorium</td><td>https://github.com/if660/Orthodontic_clinic_app</td></tr>
+  </table>
+</div>
+
+<div class="page-break"></div>
+
+<!-- STRONA 2 -->
+<div class="page">
+
+<h1 class="section-title">1. Zakres mojego wkładu w projekt</h1>
+
+<p>W ramach projektu zespołowego Orthodontic Clinic App byłam odpowiedzialna za trzy główne obszary: <strong>moduł wizyt po stronie frontendu</strong>, <strong>moduł dokumentów binarnych pacjenta</strong> (backend i frontend) oraz <strong>konteneryzację aplikacji</strong> przy użyciu Docker. Poniżej opisuję każdy z tych obszarów szczegółowo.</p>
+
+<div class="callout">
+  Zrealizowane obszary:
+  <span class="tag tag--blue">Moduł wizyt (frontend)</span>
+  <span class="tag tag--green">Moduł dokumentów binarnych</span>
+  <span class="tag tag--purple">Backend PATCH /status</span>
+  <span class="tag tag--orange">Konteneryzacja Docker</span>
+</div>
+
+<!-- MODUŁ WIZYT -->
+<h1 class="section-title">2. Moduł wizyt</h1>
+
+<h2 class="subsection-title">2.1. Widok kalendarza wizyt</h2>
+<p>Przygotowałam główny widok modułu wizyt — interaktywny kalendarz dostępny pod adresem <code>/appointments</code>. Komponent <code>AppointmentCalendarView.vue</code> obsługuje dwa tryby wyświetlania:</p>
+<ul>
+  <li><strong>Widok miesięczny</strong> — siatka 7-kolumnowa (CSS Grid) obliczana przez właściwość <code>computed calendarCells</code>, uwzględniająca puste komórki na początku miesiąca, oznaczenie bieżącego dnia i przypisanie kolorów lekarzom z palety <code>DOCTOR_PALETTE</code>. Na każdej komórce dnia widać do 3 wizyt w postaci kolorowych pigułek oraz przycisk „+" otwierający formularz nowej wizyty z wypełnioną datą.</li>
+  <li><strong>Widok tygodniowy</strong> — oś czasu 8:00–20:00, na której wizyty są pozycjonowane absolutnie względem slotów godzinowych. Kliknięcie pustego slotu otwiera formularz z wypełnioną datą i godziną.</li>
+</ul>
+<p>Panel boczny wyświetla harmonogram wybranego dnia. Kliknięcie wizyty otwiera popup renderowany przez <code>&lt;Teleport to="body"&gt;</code>, który umożliwia zmianę statusu i usunięcie wizyty bez opuszczania kalendarza.</p>
+
+<h2 class="subsection-title">2.2. Lista wizyt</h2>
+<p>Przygotowałam widok <code>AppointmentListView.vue</code> dostępny pod adresem <code>/appointments/list</code>. Widok oferuje:</p>
+<ul>
+  <li>klikalne filtry statusu z licznikami: Wszystkie / Zaplanowane / Potwierdzone / Zakończone / Anulowane / Nieobecność,</li>
+  <li>select filtrowania po lekarzu,</li>
+  <li>wyszukiwarkę tekstową po imieniu i nazwisku pacjenta, nazwisku lekarza i typie wizyty,</li>
+  <li>sortowanie malejące według daty,</li>
+  <li>modal potwierdzający usunięcie wizyty.</li>
+</ul>
+
+<h2 class="subsection-title">2.3. Formularze wizyt</h2>
+<p>Zaprojektowałam i zaimplementowałam formularze <code>AppointmentAddView.vue</code> i <code>AppointmentEditView.vue</code> z myślą o ergonomii klinicznej:</p>
+<ul>
+  <li><strong>Karta daty</strong> — pole daty i godziny wyróżnione kartą z gradientem niebieskim; po wybraniu daty automatycznie wyświetla się czytelna etykieta słowna (np. „piątek, 6 czerwca 2026"),</li>
+  <li><strong>Kafelki typów wizyty</strong> — zamiast selecta użytkownik klika jeden z 6 kafelków z ikoną emoji (🆕 Pierwsza konsultacja, 🔧 Kontrola aparatu, 🦷 Zakładanie aparatu, ✅ Zdjęcie aparatu, 📐 Retainer, 📌 Inne),</li>
+  <li><strong>Pill-buttons statusu</strong> — kolorowe przyciski w kształcie pigułek zamiast selecta, z wizualnym wyróżnieniem wybranego statusu,</li>
+  <li><strong>Prefilling z URL</strong> — formularz czyta parametry <code>?date</code>, <code>?time</code>, <code>?doctorId</code>, <code>?patientId</code>, dzięki czemu kliknięcie „+" na dniu kalendarza automatycznie wypełnia odpowiednie pola.</li>
+</ul>
+
+<h2 class="subsection-title">2.4. Typy i serwis wizyt</h2>
+<p>W pliku <code>src/types/appointment.ts</code> zdefiniowałam:</p>
+<ul>
+  <li>typ unii <code>AppointmentStatus</code>: <code>'Zaplanowana' | 'Potwierdzona' | 'Zakończona' | 'Anulowana' | 'Nieobecność'</code>,</li>
+  <li>stałe <code>APPOINTMENT_STATUS_OPTIONS</code>, <code>APPOINTMENT_STATUSES</code>, <code>VISIT_TYPES</code>,</li>
+  <li>interfejsy <code>Appointment</code>, <code>AppointmentFormPayload</code>, <code>TimeSlot</code>, <code>VisitType</code>,</li>
+  <li>funkcje pomocnicze <code>formatAppointmentDate</code>, <code>emptyAppointmentForm</code>, <code>toAppointmentFormPayload</code>.</li>
+</ul>
+<p>W pliku <code>src/services/appointmentService.ts</code> dodałam funkcję <code>updateAppointmentStatus(id, status)</code> wysyłającą żądanie <code>PATCH /api/Appointment/{id}/status</code>.</p>
+
+</div>
+
+<div class="page-break"></div>
+
+<div class="page">
+
+<!-- BACKEND PATCH -->
+<h1 class="section-title">3. Backend — endpoint PATCH /status</h1>
+
+<p>Rozszerzyłam istniejący <code>AppointmentController</code> o endpoint częściowej aktualizacji statusu wizyty, który jest wywoływany z popupu kalendarza i widoku szczegółów pacjenta:</p>
+
+<pre>[HttpPatch("{id}/status")]
+public async Task&lt;IActionResult&gt; UpdateStatus(int id, [FromBody] UpdateStatusDto dto)
+{
+    try
+    {
+        var appointment = await _context.Appointments.FindAsync(id);
+        if (appointment == null)
+            return NotFound(new { message = "Wizyta nie istnieje." });
+
+        appointment.Status = dto.Status;
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Status zaktualizowany.", status = dto.Status });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { message = "Błąd podczas aktualizacji statusu.", error = ex.Message });
+    }
+}</pre>
+
+<p>Endpoint przyjmuje tylko pole <code>Status</code> w ciele żądania, co pozwala uniknąć przesyłania całego obiektu wizyty przy prostej zmianie statusu.</p>
+
+<!-- DOKUMENTY BINARNE -->
+<h1 class="section-title">4. Moduł dokumentów binarnych pacjenta</h1>
+
+<h2 class="subsection-title">4.1. Model danych</h2>
+<p>Stworzyłam model <code>PatientDocument</code> przechowujący pliki binarne bezpośrednio w bazie danych SQL Server:</p>
+<ul>
+  <li><code>FileData</code> — dane binarne pliku (<code>byte[]</code>, mapowane na <code>varbinary(max)</code>),</li>
+  <li><code>FileName</code>, <code>ContentType</code>, <code>FileSize</code> — metadane pliku,</li>
+  <li><code>Description</code> — opcjonalny opis dodawany przez użytkownika,</li>
+  <li><code>UploadedAt</code> — data przesłania,</li>
+  <li><code>PatientId</code> — klucz obcy do tabeli <code>Patients</code>.</li>
+</ul>
+<p>Dodałam <code>DbSet&lt;PatientDocument&gt; PatientDocuments</code> do <code>AppDbContext</code> i wygenerowałam migrację EF Core <code>AddPatientDocuments</code>.</p>
+
+<h2 class="subsection-title">4.2. Backend — PatientDocumentController</h2>
+<table class="data-table">
+  <thead><tr><th>Metoda</th><th>Endpoint</th><th>Opis</th></tr></thead>
+  <tbody>
+    <tr><td>GET</td><td>/api/PatientDocument/patient/{patientId}</td><td>Lista dokumentów pacjenta — metadane bez danych binarnych</td></tr>
+    <tr><td>GET</td><td>/api/PatientDocument/download/{id}</td><td>Pobranie pliku binarnego jako FileContentResult</td></tr>
+    <tr><td>POST</td><td>/api/PatientDocument/upload</td><td>Przesłanie pliku multipart/form-data, maks. 10 MB</td></tr>
+    <tr><td>DELETE</td><td>/api/PatientDocument/{id}</td><td>Usunięcie dokumentu</td></tr>
+  </tbody>
+</table>
+<p>Akcja <code>Upload</code> przyjmuje <code>IFormFile</code>, waliduje typ MIME (PDF, JPG, PNG, GIF, DOC, DOCX) i rozmiar (maks. 10 MB), odczytuje bajty przez <code>MemoryStream</code> i zapisuje je w bazie. Akcja <code>Download</code> zwraca <code>File(byte[], contentType, fileName)</code>. W <code>Program.cs</code> skonfigurowałam limit rozmiaru żądania przez <code>FormOptions</code> i <code>KestrelServerOptions</code>.</p>
+
+<h2 class="subsection-title">4.3. Frontend — serwis i typy</h2>
+<p>W pliku <code>src/types/document.ts</code> zdefiniowałam interfejs <code>PatientDocument</code> oraz funkcje pomocnicze <code>formatFileSize()</code> i <code>fileTypeIcon()</code>.</p>
+<p>W pliku <code>src/services/documentService.ts</code> zaimplementowałam:</p>
+<ul>
+  <li><code>getPatientDocuments(patientId)</code> — pobieranie listy dokumentów,</li>
+  <li><code>uploadDocument(patientId, file, description)</code> — przesyłanie przez <code>FormData</code>,</li>
+  <li><code>downloadDocument(id, fileName)</code> — pobieranie pliku z <code>responseType: 'blob'</code>, tworzenie tymczasowego URL przez <code>URL.createObjectURL</code> i programatyczne kliknięcie <code>&lt;a download&gt;</code>,</li>
+  <li><code>deleteDocument(id)</code> — usuwanie dokumentu.</li>
+</ul>
+
+<h2 class="subsection-title">4.4. Frontend — sekcja dokumentów w widoku pacjenta</h2>
+<p>Rozszerzyłam widok <code>PatientDetailsView.vue</code> o sekcję dokumentów zawierającą:</p>
+<ul>
+  <li>przycisk „Dodaj dokument" otwierający inline pasek uploadu z polem opisu i potwierdzeniem,</li>
+  <li>listę dokumentów z ikoną typu pliku, nazwą, rozmiarem, datą przesłania i opcjonalnym opisem,</li>
+  <li>przycisk pobierania (blob download) i usuwania z potwierdzeniem.</li>
+</ul>
+
+</div>
+
+<div class="page-break"></div>
+
+<div class="page">
+
+<!-- DOCKER -->
+<h1 class="section-title">5. Konteneryzacja aplikacji (Docker)</h1>
+
+<p>Przygotowałam kompletną konfigurację Docker umożliwiającą uruchomienie całej aplikacji jednym poleceniem <code>docker-compose up</code>.</p>
+
+<h2 class="subsection-title">5.1. Dockerfile backendu</h2>
+<p>Plik <code>backend/OrthodonticClinic.Api/Dockerfile</code> używa wieloetapowego buildu:</p>
+<ul>
+  <li>etap <code>build</code> — obraz <code>mcr.microsoft.com/dotnet/sdk:10.0</code>, przywraca zależności NuGet i kompiluje projekt (<code>dotnet publish</code>),</li>
+  <li>etap <code>final</code> — lżejszy obraz <code>mcr.microsoft.com/dotnet/aspnet:10.0</code>, kopiuje skompilowane pliki i uruchamia aplikację.</li>
+</ul>
+
+<h2 class="subsection-title">5.2. Dockerfile frontendu</h2>
+<p>Plik <code>frontend/Dockerfile</code> też używa wieloetapowego buildu:</p>
+<ul>
+  <li>etap <code>build</code> — obraz <code>node:22-alpine</code>, instaluje zależności npm i buduje aplikację Vue (<code>npm run build</code>),</li>
+  <li>etap <code>final</code> — obraz <code>nginx:alpine</code>, kopiuje pliki statyczne z <code>dist/</code> i uruchamia serwer Nginx.</li>
+</ul>
+
+<h2 class="subsection-title">5.3. Konfiguracja Nginx</h2>
+<p>Plik <code>frontend/nginx.conf</code> konfiguruje:</p>
+<ul>
+  <li>obsługę routingu SPA przez <code>try_files $uri /index.html</code> — dzięki temu odświeżenie strony na dowolnej ścieżce nie zwraca błędu 404,</li>
+  <li>proxy dla zapytań <code>/api/</code> przekierowywane do serwisu backendowego w sieci Docker.</li>
+</ul>
+
+<h2 class="subsection-title">5.4. docker-compose.yml</h2>
+<p>Plik <code>docker-compose.yml</code> definiuje trzy serwisy:</p>
+<table class="data-table">
+  <thead><tr><th>Serwis</th><th>Obraz</th><th>Opis</th></tr></thead>
+  <tbody>
+    <tr><td><code>db</code></td><td>mcr.microsoft.com/mssql/server:2022-latest</td><td>SQL Server 2022 z healthcheckiem</td></tr>
+    <tr><td><code>backend</code></td><td>budowany z Dockerfile</td><td>API .NET; uruchamia się po pozytywnym healthchecku bazy</td></tr>
+    <tr><td><code>frontend</code></td><td>budowany z Dockerfile</td><td>Nginx serwujący SPA Vue, proxy /api/ do backendu</td></tr>
+  </tbody>
+</table>
+<p>Serwisy komunikują się przez wewnętrzną sieć Docker. Zmienne środowiskowe connection stringa są przekazywane do backendu przez sekcję <code>environment</code> w pliku compose.</p>
+
+<!-- NAPOTKANE PROBLEMY -->
+<h1 class="section-title">6. Napotkane problemy i poprawki</h1>
+
+<h2 class="subsection-title">6.1. Błędny import komponentu w routerze</h2>
+<p>Przy podłączaniu modułu wizyt do routera aplikacji okazało się, że plik <code>frontend/src/router/index.ts</code> importował nieistniejący komponent <code>AppointmentCalendarView.vue</code> pod ścieżką <code>/appointments</code>, zamiast poprawnego <code>AppointmentListView.vue</code>. Błąd powodował awarię całej aplikacji przy próbie wejścia na zakładkę wizyt. Poprawiłam import i jednocześnie uzupełniłam brakujące trasy podstron modułu wizyt (<code>/appointments/new</code>, <code>/appointments/:id</code>, <code>/appointments/:id/edit</code>).</p>
+
+<h2 class="subsection-title">6.2. Niezgodność typów TypeScript w serwisie wizyt</h2>
+<p>Widok <code>DashboardView.vue</code> wywoływał funkcję <code>getAvailableSlots</code> z trzema argumentami i odwoływał się do właściwości <code>.start</code> na zwróconych elementach, podczas gdy serwis <code>appointmentService.ts</code> przyjmował tylko dwa argumenty i zwracał <code>string[]</code>. Podobny problem dotyczył funkcji <code>getVisitTypes</code>, która zwracała <code>any[]</code> zamiast typowanej tablicy. Naprawiłam obie funkcje — dodałam interfejsy <code>TimeSlot { start: string }</code> i <code>VisitType { name: string }</code> oraz opcjonalny trzeci parametr w <code>getAvailableSlots</code>, co wyeliminowało błędy kompilacji TypeScript.</p>
+
+<!-- PODSUMOWANIE -->
+<h1 class="section-title">7. Podsumowanie</h1>
+
+<p>W ramach projektu zrealizowałam samodzielnie trzy niezależne obszary funkcjonalne aplikacji:</p>
+
+<ol>
+  <li><strong>Moduł wizyt (frontend)</strong> — interaktywny kalendarz miesięczny i tygodniowy, lista wizyt z filtrami, formularze dodawania i edycji z nowatorskim interfejsem (kafelki typów, pill-buttons statusu, prefilling z URL), typy TypeScript i serwis komunikujący się z API.</li>
+  <li><strong>Moduł dokumentów binarnych</strong> — pełna obsługa przesyłania i pobierania plików binarnych: model danych z <code>varbinary(max)</code>, migracja EF Core, kontroler REST z walidacją, serwis frontendowy z blob download, sekcja dokumentów w widoku pacjenta.</li>
+  <li><strong>Konteneryzacja Docker</strong> — wieloetapowe Dockerfile dla backendu (.NET) i frontendu (Vue + Nginx), konfiguracja Nginx z SPA fallback i proxy API, plik docker-compose.yml orkiestrujący trzy serwisy z healthcheckiem bazy danych.</li>
+</ol>
+
+<p>Dodatkowo rozszerzyłam <code>AppointmentController</code> o endpoint <code>PATCH /api/Appointment/{id}/status</code> umożliwiający zmianę statusu wizyty bez przesyłania całego modelu, co jest wykorzystywane przez popup kalendarza.</p>
+<p>W trakcie pracy natrafiłam na dwa błędy techniczne: niepoprawny import komponentu w routerze oraz niezgodność typów TypeScript w serwisie wizyt — oba zostały zdiagnozowane i naprawione (sekcja 6).</p>
+
+</div>
+
+</body>
+</html>
