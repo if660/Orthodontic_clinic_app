@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Zaliczenie A — Programowanie aplikacji rozproszonych</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 11pt; }
+  body { font-family: "Times New Roman", Times, serif; background: #fff; color: #000; }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 20mm 20mm 20mm;
+    margin: 0 auto;
+  }
+
+  h1.doc-title {
+    text-align: center;
+    font-size: 13pt;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-label {
+    font-size: 11pt;
+    margin-bottom: 0.3rem;
+    margin-top: 1rem;
+  }
+
+  .team-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+    font-size: 11pt;
+  }
+  .team-row .num { min-width: 1rem; }
+  .team-row .name-line {
+    flex: 1;
+    border-bottom: 1px solid #000;
+    min-height: 1.2em;
+    padding-bottom: 1px;
+  }
+  .team-row .label-small { white-space: nowrap; font-size: 10pt; }
+  .team-row .score-line {
+    border-bottom: 1px solid #000;
+    width: 2.5rem;
+    min-height: 1.2em;
+    padding-bottom: 1px;
+  }
+
+  .dotted-line {
+    border-bottom: 1px solid #000;
+    width: 100%;
+    min-height: 1.4em;
+    margin-bottom: 0.35rem;
+  }
+
+  .link-line {
+    border-bottom: 1px solid #000;
+    width: 100%;
+    min-height: 1.4em;
+    margin-bottom: 0.35rem;
+    font-family: "Courier New", monospace;
+    font-size: 10pt;
+    padding-top: 2px;
+  }
+
+  .scoring-intro {
+    font-size: 10.5pt;
+    margin: 1rem 0 0.5rem;
+    line-height: 1.5;
+  }
+
+  table.scoring {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5pt;
+    margin-bottom: 1rem;
+  }
+  table.scoring th, table.scoring td {
+    border: 1px solid #000;
+    padding: 0.35rem 0.5rem;
+    vertical-align: middle;
+  }
+  table.scoring th {
+    font-weight: bold;
+    text-align: center;
+    background: #fff;
+  }
+  table.scoring td:first-child { width: 65%; }
+  table.scoring td:nth-child(2) { width: 13%; text-align: center; }
+  table.scoring td:nth-child(3) { width: 11%; text-align: center; }
+  table.scoring td:nth-child(4) { width: 11%; text-align: center; }
+
+  .check { font-size: 13pt; font-weight: bold; }
+  .suma-row td { font-weight: bold; }
+
+  .no-print {
+    background: #fef3c7; border: 2px solid #f59e0b;
+    padding: 10px 16px; text-align: center; font-weight: 600;
+    font-size: 0.9rem; position: sticky; top: 0; z-index: 999;
+    font-family: sans-serif;
+  }
+
+  @media print {
+    .no-print { display: none; }
+    .page { width: 100%; padding: 15mm 18mm; }
+  }
+  @page { margin: 0; size: A4; }
+</style>
+</head>
+<body>
+
+<div class="no-print">ℹ️ Aby zapisać jako PDF: <strong>Ctrl+P</strong> → Drukarka: <strong>Zapisz jako PDF</strong> → Marginesy: <strong>Brak</strong> → Zapisz</div>
+
+<div class="page">
+
+  <h1 class="doc-title">Programowanie aplikacji rozproszonych</h1>
+
+  <div class="section-label">Zespół:</div>
+
+  <div class="team-row">
+    <span class="num">1.</span>
+    <span class="name-line">Izabela Filipkowska &nbsp;&nbsp; 284035</span>
+    <span class="label-small">aktywność: …….</span>
+    <span class="label-small">końcowa:</span>
+    <span class="score-line"></span>
+  </div>
+  <div class="team-row">
+    <span class="num">2.</span>
+    <span class="name-line">Krystyna Dyzma &nbsp;&nbsp; 301381</span>
+    <span class="label-small">aktywność: …….</span>
+    <span class="label-small">końcowa:</span>
+    <span class="score-line"></span>
+  </div>
+  <div class="team-row">
+    <span class="num">3.</span>
+    <span class="name-line">Paulina Majerkiewicz &nbsp;&nbsp; 298528</span>
+    <span class="label-small">aktywność: …….</span>
+    <span class="label-small">końcowa:</span>
+    <span class="score-line"></span>
+  </div>
+  <div class="team-row">
+    <span class="num">4.</span>
+    <span class="name-line">Diana Błaszczyk &nbsp;&nbsp; 298557</span>
+    <span class="label-small">aktywność: …….</span>
+    <span class="label-small">końcowa:</span>
+    <span class="score-line"></span>
+  </div>
+
+  <div class="section-label" style="margin-top:1.2rem;">Temat:</div>
+  <div class="dotted-line">Orthodontic Clinic App – aplikacja webowa do zarządzania kliniką ortodontyczną</div>
+
+  <div class="section-label">Opis:</div>
+  <div class="dotted-line">Aplikacja webowa wspierająca obsługę gabinetu ortodontycznego. Umożliwia zarządzanie pacjentami,</div>
+  <div class="dotted-line">lekarzami oraz wizytami. Backend: ASP.NET Core Web API + Entity Framework Core + SQL Server.</div>
+  <div class="dotted-line">Frontend: Vue 3 + TypeScript + Axios (osobna aplikacja SPA). Pełne CRUD dla trzech encji,</div>
+  <div class="dotted-line">przesyłanie i pobieranie plików binarnych (dokumenty pacjenta), konteneryzacja Docker.</div>
+
+  <div class="section-label" style="margin-top:1rem;">Link do pobrania projektu:</div>
+  <div class="link-line">https://github.com/if660/Orthodontic_clinic_app</div>
+
+  <div class="section-label" style="margin-top:1rem;">Punktacja:</div>
+  <p class="scoring-intro">Oceniana jest jakość wizualna oraz funkcjonalna aplikacji. Oceną jest suma punktów (aby uzyskać 3 potrzebujesz 3 punktów – 3 = ZAL):</p>
+
+  <table class="scoring">
+    <thead>
+      <tr>
+        <th>Opis</th>
+        <th>Punkty</th>
+        <th>zespół (X)</th>
+        <th>prowadzący (X)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Back-end dla wszystkich metod CRUD dla jednej encji w architekturze REST</td>
+        <td style="text-align:center;">1 pkt</td>
+        <td style="text-align:center;"><span class="check">X</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Osobna aplikacja Front-endowa wykorzystująca wszystkie funkcje CRUD dla API (Z punktu poprzedniego)</td>
+        <td style="text-align:center;">0.5 pkt</td>
+        <td style="text-align:center;"><span class="check">X</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Zastosowanie realnej bazy danych np. MsSQL</td>
+        <td style="text-align:center;">0.5 pkt</td>
+        <td style="text-align:center;"><span class="check">X</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Obsługa błędów try-catch wraz ze zwracaniem odpowiedzi (kod i komunikat)</td>
+        <td style="text-align:center;">0.5 pkt</td>
+        <td style="text-align:center;"><span class="check">X</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Przesyłanie/pobieranie danych binarnych (dokumenty).</td>
+        <td style="text-align:center;">0.5 pkt</td>
+        <td style="text-align:center;"><span class="check">X</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>Inne nie wymienione: <strong>Konteneryzacja aplikacji (Docker + docker-compose)</strong></td>
+        <td style="text-align:center;">od 0 pkt do 2 pkt</td>
+        <td style="text-align:center;"><span class="check">X</span></td>
+        <td></td>
+      </tr>
+      <tr class="suma-row">
+        <td colspan="2" style="text-align:right;">Suma:</td>
+        <td style="text-align:center;">4–5</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-label">Uwagi:</div>
+  <div class="dotted-line"></div>
+  <div class="dotted-line"></div>
+  <div class="dotted-line"></div>
+  <div class="dotted-line"></div>
+
+</div>
+</body>
+</html>
