@@ -15,8 +15,8 @@ export function formatFileSize(bytes: number): string {
 }
 
 export function fileTypeIcon(contentType: string): string {
-  if (contentType === 'application/pdf') return '📄'
-  if (contentType.startsWith('image/')) return '🖼️'
-  if (contentType.includes('word')) return '📝'
-  return '📎'
+  if (contentType === 'application/pdf') return 'PDF'
+  if (contentType.startsWith('image/')) return 'IMG'
+  if (contentType.includes('word')) return 'DOC'
+  return 'PLIK'
 }

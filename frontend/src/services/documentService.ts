@@ -1,7 +1,8 @@
 import axios from 'axios'
 import type { PatientDocument } from '../types/document'
+import { apiBaseUrl } from './apiConfig'
 
-const API_URL = 'http://localhost:5153/api/PatientDocument'
+const API_URL = `${apiBaseUrl}/PatientDocument`
 
 export const getPatientDocuments = async (patientId: number): Promise<PatientDocument[]> => {
   const response = await axios.get<PatientDocument[]>(`${API_URL}/patient/${patientId}`)

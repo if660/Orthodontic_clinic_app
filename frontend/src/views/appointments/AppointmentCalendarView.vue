@@ -78,7 +78,7 @@ const filteredAppointments = computed(() => {
 const doctorColorMap = computed(() => {
   const map: Record<number, string> = {}
   doctors.value.forEach((d, i) => {
-    map[d.id] = DOCTOR_PALETTE[i % DOCTOR_PALETTE.length]
+    map[d.id] = DOCTOR_PALETTE[i % DOCTOR_PALETTE.length] ?? '#94a3b8'
   })
   return map
 })
@@ -217,6 +217,7 @@ const headerLabel = computed(() => {
   }
   const first = weekDays.value[0]
   const last = weekDays.value[6]
+  if (!first || !last) return ''
   const d1 = new Date(`${first.isoDate}T00:00:00`)
   const d2 = new Date(`${last.isoDate}T00:00:00`)
   const fmt1 = d1.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })

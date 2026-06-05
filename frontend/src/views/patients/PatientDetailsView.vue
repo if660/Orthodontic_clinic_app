@@ -117,8 +117,9 @@
         </ul>
       </section>
 
-      <section class="app-details-section">
+      <section id="documents" class="app-details-section app-details-section--documents">
         <h3 class="app-details-section__title">Dokumenty pacjenta</h3>
+        <p class="documents-header__meta">{{ documentSummary }}</p>
 
         <AppAlert
           v-if="docError"
@@ -133,10 +134,11 @@
           @dismiss="docSuccess = null"
         />
 
-        <div class="doc-upload-bar">
+        <div class="doc-upload-panel">
           <label class="doc-upload-label">
-            <span class="app-btn app-btn--secondary app-btn--sm">
-              {{ uploading ? 'Przesyłanie...' : '📎 Dodaj dokument' }}
+            <span class="app-btn app-btn--secondary app-btn--sm doc-upload-button">
+              <AppIcon name="file" />
+              <span>{{ uploading ? 'Przesyłanie...' : 'Dodaj dokument' }}</span>
             </span>
             <input
               ref="fileInputRef"
@@ -147,14 +149,21 @@
               @change="onFileSelected"
             />
           </label>
-          <span class="doc-upload-hint">PDF, JPG, PNG, DOC — maks. 10 MB</span>
-        </div>
+          <span class="doc-upload-hint">PDF, JPG, PNG, DOC, DOCX - maks. 10 MB</span>
 
-        <div v-if="docDescriptionPending" class="doc-desc-row">
+          <div v-if="docDescriptionPending" class="doc-upload-draft">
+          <div class="doc-upload-draft__file">
+            <span class="doc-item__type">{{ pendingFileTypeLabel }}</span>
+            <div>
+              <strong>{{ pendingFile?.name }}</strong>
+              <span>{{ pendingFile ? formatFileSize(pendingFile.size) : '' }}</span>
+            </div>
+          </div>
           <input
             v-model="pendingDescription"
             type="text"
             class="doc-desc-input"
+            maxlength="140"
             placeholder="Opis dokumentu (opcjonalnie)"
           />
           <button class="app-btn app-btn--primary app-btn--sm" :disabled="uploading" @click="confirmUpload">
@@ -163,6 +172,7 @@
           <button class="app-btn app-btn--ghost app-btn--sm" @click="cancelUpload">
             Anuluj
           </button>
+          </div>
         </div>
 
         <p v-if="docsLoading" class="app-detail-item__value">Ładowanie dokumentów...</p>
@@ -173,12 +183,12 @@
 
         <ul v-else class="doc-list">
           <li v-for="doc in documents" :key="doc.id" class="doc-item">
-            <span class="doc-item__icon">{{ fileTypeIcon(doc.contentType) }}</span>
+            <span class="doc-item__type">{{ fileTypeIcon(doc.contentType) }}</span>
             <div class="doc-item__info">
               <strong class="doc-item__name">{{ doc.fileName }}</strong>
               <span class="doc-item__meta">
                 {{ formatFileSize(doc.fileSize) }} •
-                {{ new Date(doc.uploadedAt).toLocaleDateString('pl-PL') }}
+                {{ formatDocumentDate(doc.uploadedAt) }}
                 <span v-if="doc.description"> • {{ doc.description }}</span>
               </span>
             </div>
@@ -192,7 +202,7 @@
               <button
                 class="app-btn app-btn--danger app-btn--sm"
                 :disabled="deletingDocId === doc.id"
-                @click="deleteDoc(doc.id)"
+                @click="requestDeleteDoc(doc)"
               >
                 {{ deletingDocId === doc.id ? '...' : 'Usuń' }}
               </button>
@@ -234,11 +244,31 @@
         </div>
       </div>
     </div>
+
+    <div v-if="docDeleteTarget" class="modal-backdrop">
+      <div class="modal">
+        <div class="modal__header">
+          <h3>Usuń dokument</h3>
+        </div>
+        <div class="modal__body">
+          <p>Usunąć dokument <strong>{{ docDeleteTarget.fileName }}</strong>?</p>
+          <p class="modal__warning">Plik zostanie trwale usunięty z karty pacjenta.</p>
+        </div>
+        <div class="modal__footer">
+          <button type="button" class="app-btn app-btn--secondary" :disabled="deletingDocId !== null" @click="cancelDeleteDoc">
+            Anuluj
+          </button>
+          <button type="button" class="app-btn app-btn--danger" :disabled="deletingDocId !== null" @click="confirmDeleteDoc">
+            {{ deletingDocId !== null ? 'Usuwanie...' : 'Usuń dokument' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </PageLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PageLayout from '../../components/common/PageLayout.vue'
 import PageHeader from '../../components/common/PageHeader.vue'
@@ -273,16 +303,56 @@ const isDeleting = ref(false)
 const patientId = Number(route.params.id)
 
 // Documents
+const maxDocumentSizeBytes = 10 * 1024 * 1024
+const allowedDocumentTypes = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]
 const documents = ref<PatientDocument[]>([])
 const docsLoading = ref(false)
 const docError = ref<string | null>(null)
 const docSuccess = ref<string | null>(null)
 const uploading = ref(false)
 const deletingDocId = ref<number | null>(null)
+const docDeleteTarget = ref<PatientDocument | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const pendingFile = ref<File | null>(null)
 const pendingDescription = ref('')
 const docDescriptionPending = ref(false)
+
+const documentSummary = computed(() => {
+  if (docsLoading.value) return 'Ładowanie dokumentów...'
+  if (documents.value.length === 0) return 'Brak dodanych plików'
+  if (documents.value.length === 1) return '1 dodany dokument'
+  return `${documents.value.length} dodanych dokumentów`
+})
+
+const pendingFileTypeLabel = computed(() =>
+  pendingFile.value ? fileTypeIcon(pendingFile.value.type) : 'PLIK',
+)
+
+const formatDocumentDate = (date: string) =>
+  new Date(date).toLocaleDateString('pl-PL', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+
+const validateDocumentFile = (file: File): string | null => {
+  if (file.size > maxDocumentSizeBytes) {
+    return 'Plik jest za duży. Maksymalny rozmiar to 10 MB.'
+  }
+
+  if (!allowedDocumentTypes.includes(file.type)) {
+    return 'Niedozwolony typ pliku. Wybierz PDF, JPG, PNG, GIF, DOC albo DOCX.'
+  }
+
+  return null
+}
 
 const loadDocuments = async () => {
   docsLoading.value = true
@@ -295,10 +365,25 @@ const loadDocuments = async () => {
   }
 }
 
+const scrollToDocumentsSection = async () => {
+  if (route.hash !== '#documents') return
+  await nextTick()
+  document.getElementById('documents')?.scrollIntoView({ block: 'start' })
+}
+
 const onFileSelected = (event: Event) => {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
+  const validationMessage = validateDocumentFile(file)
+  docError.value = validationMessage
+  docSuccess.value = null
+  if (validationMessage) {
+    pendingFile.value = null
+    docDescriptionPending.value = false
+    if (fileInputRef.value) fileInputRef.value.value = ''
+    return
+  }
   pendingFile.value = file
   pendingDescription.value = ''
   docDescriptionPending.value = true
@@ -312,6 +397,12 @@ const cancelUpload = () => {
 
 const confirmUpload = async () => {
   if (!pendingFile.value) return
+  const validationMessage = validateDocumentFile(pendingFile.value)
+  if (validationMessage) {
+    docError.value = validationMessage
+    return
+  }
+
   uploading.value = true
   docError.value = null
   try {
@@ -334,12 +425,24 @@ const downloadDoc = async (doc: PatientDocument) => {
   }
 }
 
-const deleteDoc = async (id: number) => {
+const requestDeleteDoc = (doc: PatientDocument) => {
+  docDeleteTarget.value = doc
+  docError.value = null
+}
+
+const cancelDeleteDoc = () => {
+  docDeleteTarget.value = null
+}
+
+const confirmDeleteDoc = async () => {
+  if (!docDeleteTarget.value) return
+  const id = docDeleteTarget.value.id
   deletingDocId.value = id
   docError.value = null
   try {
     await deleteDocument(id)
     documents.value = documents.value.filter((d) => d.id !== id)
+    docDeleteTarget.value = null
     docSuccess.value = 'Dokument został usunięty.'
   } catch (err) {
     docError.value = getApiErrorMessage(err, 'Nie udało się usunąć dokumentu.')
@@ -468,6 +571,7 @@ onMounted(async () => {
     appointments.value = appointmentData
     draftStatuses.value = Object.fromEntries(appointmentData.map((appointment) => [appointment.id, appointment.status]))
     await loadDocuments()
+    await scrollToDocumentsSection()
   } catch (err) {
     console.error('Error loading patient:', err)
     error.value = getApiErrorMessage(err, 'Nie udało się załadować szczegółów pacjenta')
@@ -485,6 +589,7 @@ onMounted(async () => {
   margin-top: 1.5rem;
   border-top: 1px solid var(--color-border);
   padding-top: 1rem;
+  scroll-margin-top: 1.5rem;
 }
 
 .app-details-section__title {
@@ -586,6 +691,10 @@ onMounted(async () => {
   border-radius: var(--radius-md);
 }
 
+.app-details-section--documents {
+  scroll-margin-top: 1.5rem;
+}
+
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -663,20 +772,38 @@ onMounted(async () => {
 }
 
 /* ---- Documents section ---- */
-.doc-upload-bar {
+.documents-header__meta {
+  margin: -0.35rem 0 0.85rem;
+  color: var(--color-text-muted);
+  font-size: 0.84rem;
+}
+
+.doc-upload-panel {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  background: #f8fafc;
+}
+
+.doc-upload-panel .doc-upload-label {
+  margin-right: 0.75rem;
 }
 
 .doc-upload-label {
   cursor: pointer;
+  display: inline-flex;
 }
 
 .doc-file-input {
   display: none;
+}
+
+.doc-upload-button {
+  gap: 0.35rem;
 }
 
 .doc-upload-hint {
@@ -684,17 +811,50 @@ onMounted(async () => {
   color: var(--color-text-muted);
 }
 
-.doc-desc-row {
+.doc-upload-draft {
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
+}
+
+.doc-upload-draft__file {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+.doc-upload-draft__file div {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.doc-upload-draft__file strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.86rem;
+}
+
+.doc-upload-draft__file span {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.doc-upload-draft__actions {
+  display: flex;
+  gap: 0.45rem;
   flex-wrap: wrap;
 }
 
 .doc-desc-input {
   flex: 1;
-  min-width: 180px;
+  min-width: 200px;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
   padding: 0.4rem 0.6rem;
@@ -715,14 +875,24 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.65rem 0.85rem;
+  padding: 0.75rem 0.85rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #f8fafc;
+  background: #fff;
 }
 
-.doc-item__icon {
-  font-size: 1.6rem;
+.doc-item__type {
+  width: 2.8rem;
+  min-width: 2.8rem;
+  border-radius: var(--radius-sm);
+  background: #e0f2fe;
+  color: #075985;
+  border: 1px solid #bae6fd;
+  padding: 0.28rem 0.35rem;
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   flex-shrink: 0;
 }
 
@@ -751,5 +921,22 @@ onMounted(async () => {
   display: flex;
   gap: 0.4rem;
   flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .doc-item {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .doc-item__actions,
+  .doc-upload-draft__actions {
+    width: 100%;
+  }
+
+  .doc-item__actions .app-btn,
+  .doc-upload-draft__actions .app-btn {
+    flex: 1;
+  }
 }
 </style>

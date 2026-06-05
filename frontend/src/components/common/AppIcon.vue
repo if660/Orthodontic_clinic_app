@@ -34,11 +34,20 @@
       <path d="M8 2v4M16 2v4M3 4h18a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
       <path d="M3 10h18" />
     </template>
+    <template v-else-if="name === 'file'">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+      <path d="M14 2v6h6" />
+      <path d="M8 13h8M8 17h5" />
+    </template>
+    <template v-else-if="name === 'list'">
+      <path d="M8 6h13M8 12h13M8 18h13" />
+      <path d="M3 6h.01M3 12h.01M3 18h.01" />
+    </template>
   </svg>
 </template>
 
 <script setup lang="ts">
-export type IconName = 'plus' | 'search' | 'eye' | 'pencil' | 'trash' | 'calendar'
+export type IconName = 'plus' | 'search' | 'eye' | 'pencil' | 'trash' | 'calendar' | 'file' | 'list'
 
 withDefaults(
   defineProps<{

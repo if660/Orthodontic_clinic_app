@@ -1,8 +1,9 @@
 import axios from 'axios'
 import type { Appointment, AppointmentFormPayload, AppointmentStatus } from '../types/appointment'
 import { normalizeAppointment } from '../types/appointment'
+import { apiBaseUrl } from './apiConfig'
 
-const API_URL = 'http://localhost:5153/api/Appointment'
+const API_URL = `${apiBaseUrl}/Appointment`
 
 export const getAppointments = async (): Promise<Appointment[]> => {
   const response = await axios.get<Appointment[]>(API_URL)

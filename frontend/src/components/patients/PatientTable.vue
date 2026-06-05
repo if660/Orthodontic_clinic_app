@@ -63,6 +63,15 @@
                 <AppIcon name="calendar" size="md" />
                 <span class="btn-text">Kalendarz</span>
               </button>
+              <button
+                type="button"
+                class="action-btn documents-btn"
+                title="Dokumenty"
+                @click="emit('documents', patient)"
+              >
+                <AppIcon name="file" size="md" />
+                <span class="btn-text">Dokumenty</span>
+              </button>
             </td>
           </tr>
         </tbody>
@@ -109,6 +118,9 @@
           <button type="button" class="action-btn calendar-btn" title="Kalendarz" @click="emit('appointments', patient)">
             <AppIcon name="calendar" size="md" />
           </button>
+          <button type="button" class="action-btn documents-btn" title="Dokumenty" @click="emit('documents', patient)">
+            <AppIcon name="file" size="md" />
+          </button>
         </div>
       </article>
     </div>
@@ -138,6 +150,7 @@ const emit = defineEmits<{
   details: [patient: Patient]
   edit: [patient: Patient]
   appointments: [patient: Patient]
+  documents: [patient: Patient]
 }>()
 
 const getAgeText = (birthDate?: string | null) => {
@@ -297,6 +310,14 @@ const getAgeText = (birthDate?: string | null) => {
 
 .delete-btn:hover {
   background-color: #b91c1c;
+}
+
+.documents-btn {
+  background-color: #0f766e;
+}
+
+.documents-btn:hover {
+  background-color: #115e59;
 }
 
 @media (max-width: 768px) {

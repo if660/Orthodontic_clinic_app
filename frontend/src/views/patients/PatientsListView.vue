@@ -69,6 +69,7 @@
         @details="onDetails"
         @edit="onEdit"
         @appointments="onAppointments"
+        @documents="onDocuments"
       />
     </template>
 
@@ -210,6 +211,10 @@ const onEdit = (patient: Patient) => {
 
 const onAppointments = (patient: Patient) => {
   router.push({ name: 'appointments', query: { patientId: patient.id } })
+}
+
+const onDocuments = (patient: Patient) => {
+  router.push({ name: 'patient-details', params: { id: patient.id }, hash: '#documents' })
 }
 
 onMounted(async () => {

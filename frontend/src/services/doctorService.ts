@@ -1,8 +1,9 @@
 import axios from 'axios'
 import type { Doctor, DoctorFormPayload } from '../types/doctor'
 import { normalizeDoctor } from '../types/doctor'
+import { apiBaseUrl } from './apiConfig'
 
-const API_URL = 'http://localhost:5153/api/Doctor'
+const API_URL = `${apiBaseUrl}/Doctor`
 
 const toApiPayload = (doctor: DoctorFormPayload) => ({
   ...doctor,
