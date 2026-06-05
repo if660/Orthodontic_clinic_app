@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Raport – Orthodontic Clinic App</title>
+<style>
+  /* ─── Reset & base ─── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 11pt; }
+  body {
+    font-family: "Segoe UI", Calibri, Arial, sans-serif;
+    line-height: 1.65;
+    color: #1a1a1a;
+    background: #fff;
+  }
+
+  /* ─── Page layout ─── */
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 25mm 22mm 20mm;
+    margin: 0 auto;
+  }
+
+  /* ─── Title page ─── */
+  .title-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 297mm;
+    padding: 30mm 22mm;
+  }
+  .title-page__logo {
+    font-size: 2.4rem;
+    margin-bottom: 2rem;
+  }
+  .title-page h1 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 0.4rem;
+    line-height: 1.2;
+  }
+  .title-page h2 {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: #475569;
+    margin-bottom: 3rem;
+  }
+  .title-page__meta {
+    width: 100%;
+    border-collapse: collapse;
+    max-width: 420px;
+    margin: 0 auto 2.5rem;
+    font-size: 0.92rem;
+  }
+  .title-page__meta td {
+    padding: 0.35rem 0.6rem;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+  }
+  .title-page__meta td:first-child {
+    font-weight: 600;
+    color: #475569;
+    width: 50%;
+  }
+  .title-page__authors {
+    margin: 1.5rem auto 0;
+    max-width: 380px;
+    text-align: left;
+    font-size: 0.92rem;
+  }
+  .title-page__authors p {
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #e2e8f0;
+    color: #1a1a1a;
+  }
+
+  /* ─── TOC ─── */
+  .toc { margin: 1.5rem 0; }
+  .toc__title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid #bfdbfe;
+  }
+  .toc__list { list-style: none; }
+  .toc__list li { padding: 0.22rem 0; font-size: 0.93rem; color: #334155; }
+  .toc__list li.toc__l2 { padding-left: 1.2rem; }
+  .toc__list li.toc__l3 { padding-left: 2.4rem; font-size: 0.88rem; color: #64748b; }
+  .toc__list .toc__num { color: #2563eb; font-weight: 600; margin-right: 0.4rem; min-width: 2rem; display: inline-block; }
+
+  /* ─── Section headings ─── */
+  h1.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin: 2.5rem 0 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid #bfdbfe;
+  }
+  h2.subsection-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1e40af;
+    margin: 1.8rem 0 0.6rem;
+  }
+  h3.subsubsection-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1d4ed8;
+    margin: 1.4rem 0 0.5rem;
+  }
+
+  /* ─── Body text ─── */
+  p { margin-bottom: 0.75rem; text-align: justify; }
+  ul, ol { margin: 0.5rem 0 0.8rem 1.4rem; }
+  li { margin-bottom: 0.3rem; }
+
+  /* ─── Tables ─── */
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8rem 0 1.2rem;
+    font-size: 0.88rem;
+  }
+  table.data-table th {
+    background: #1e40af;
+    color: #fff;
+    padding: 0.5rem 0.7rem;
+    text-align: left;
+    font-weight: 600;
+  }
+  table.data-table td {
+    padding: 0.45rem 0.7rem;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+  table.data-table tr:nth-child(even) td { background: #f8fafc; }
+
+  /* ─── Screenshot placeholder ─── */
+  .screenshot-placeholder {
+    border: 2px dashed #93c5fd;
+    background: #eff6ff;
+    border-radius: 6px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: #1d4ed8;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 0.8rem 0 1.2rem;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .screenshot-placeholder::before { content: "📸 "; }
+
+  /* ─── Code block ─── */
+  pre, code {
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 0.82rem;
+  }
+  pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 0.6rem 0 1rem;
+    line-height: 1.45;
+  }
+
+  /* ─── Highlight box ─── */
+  .callout {
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
+    padding: 0.7rem 1rem;
+    border-radius: 0 6px 6px 0;
+    margin: 0.6rem 0 1rem;
+    font-size: 0.9rem;
+    color: #1e3a8a;
+  }
+
+  /* ─── Page break ─── */
+  .page-break { page-break-after: always; break-after: page; }
+
+  /* ─── Print ─── */
+  @media print {
+    body { background: #fff; }
+    .page { width: 100%; padding: 15mm 18mm 15mm; }
+    .title-page { min-height: auto; page-break-after: always; }
+    .no-print { display: none; }
+    h1.section-title, h2.subsection-title { page-break-after: avoid; }
+    table, pre { page-break-inside: avoid; }
+    .screenshot-placeholder { border-color: #93c5fd !important; }
+  }
+  @page { margin: 0; size: A4; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ PRINT HINT ═══════════════════ -->
+<div class="no-print" style="background:#fef3c7;border:2px solid #f59e0b;padding:12px 18px;text-align:center;font-weight:600;font-size:0.95rem;position:sticky;top:0;z-index:999;">
+  ℹ️ Aby zapisać jako PDF: naciśnij <strong>Ctrl+P</strong> → Drukarka: <strong>Zapisz jako PDF</strong> → Marginesy: <strong>Brak</strong> → <strong>Zapisz</strong>
+</div>
+
+<!-- ═══════════════════ STRONA TYTUŁOWA ═══════════════════ -->
+<div class="page title-page">
+  <div class="title-page__logo">🦷</div>
+  <h1>Raport prezentujący projekt<br/>Orthodontic Clinic App</h1>
+  <h2>Aplikacja webowa do zarządzania kliniką ortodontyczną</h2>
+
+  <table class="title-page__meta">
+    <tr><td>Nazwa przedmiotu</td><td>Frameworki front-end</td></tr>
+    <tr><td>Grupa</td><td>N22-31</td></tr>
+    <tr><td>Rok akademicki</td><td>2025/2026</td></tr>
+    <tr><td>Repozytorium</td><td>https://github.com/if660/Orthodontic_clinic_app</td></tr>
+  </table>
+
+  <div class="title-page__authors">
+    <p><strong>Autorzy:</strong></p>
+    <p>Izabela Filipkowska, nr indeksu: 284035</p>
+    <p>Krystyna Dyzma, nr indeksu: 301381</p>
+    <p>Paulina Majerkiewicz, nr indeksu: 298528</p>
+    <p>Diana Błaszczyk, nr indeksu: 298557</p>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════ SPIS TREŚCI ═══════════════════ -->
+<div class="page">
+<div class="toc">
+  <div class="toc__title">Spis treści</div>
+  <ul class="toc__list">
+    <li><span class="toc__num">1.</span>Cel projektu</li>
+    <li><span class="toc__num">2.</span>Założenia projektu</li>
+    <li class="toc__l2"><span class="toc__num">2.1.</span>Architektura aplikacji</li>
+    <li class="toc__l2"><span class="toc__num">2.2.</span>Struktura projektu</li>
+    <li class="toc__l2"><span class="toc__num">2.3.</span>Wybrane technologie i uzasadnienie</li>
+    <li><span class="toc__num">3.</span>Baza danych</li>
+    <li><span class="toc__num">4.</span>Funkcjonalność aplikacji</li>
+    <li class="toc__l2"><span class="toc__num">4.1.</span>Panel główny aplikacji</li>
+    <li class="toc__l2"><span class="toc__num">4.2.</span>Moduł lekarzy</li>
+    <li class="toc__l2"><span class="toc__num">4.3.</span>Moduł pacjentów</li>
+    <li class="toc__l2"><span class="toc__num">4.4.</span>Moduł wizyt</li>
+    <li class="toc__l2"><span class="toc__num">4.5.</span>Moduł dokumentów pacjenta</li>
+    <li class="toc__l2"><span class="toc__num">4.6.</span>Konteneryzacja aplikacji</li>
+    <li><span class="toc__num">5.</span>Przygotowanie projektu</li>
+    <li class="toc__l2"><span class="toc__num">5.1.</span>Ustalenie tematu i podział pracy</li>
+    <li class="toc__l2"><span class="toc__num">5.2.</span>Przygotowanie repozytorium i struktury projektu</li>
+    <li class="toc__l2"><span class="toc__num">5.3.</span>Przygotowanie modeli danych i bazy</li>
+    <li class="toc__l2"><span class="toc__num">5.4.</span>Przygotowanie backendu i kontrolerów REST API</li>
+    <li class="toc__l2"><span class="toc__num">5.5.</span>Testowanie backendu w Swaggerze</li>
+    <li class="toc__l2"><span class="toc__num">5.6.</span>Przygotowanie struktury frontendu</li>
+    <li class="toc__l2"><span class="toc__num">5.7.</span>Przygotowanie routingu i nawigacji</li>
+    <li class="toc__l2"><span class="toc__num">5.8.</span>Przygotowanie modułu pacjentów</li>
+    <li class="toc__l2"><span class="toc__num">5.9.</span>Przygotowanie modułu lekarzy</li>
+    <li class="toc__l2"><span class="toc__num">5.10.</span>Przygotowanie modułu wizyt</li>
+    <li class="toc__l2"><span class="toc__num">5.11.</span>Przygotowanie modułu dokumentów pacjenta</li>
+    <li class="toc__l2"><span class="toc__num">5.12.</span>Przygotowanie panelu głównego</li>
+    <li class="toc__l2"><span class="toc__num">5.13.</span>Konteneryzacja i konfiguracja Docker</li>
+    <li class="toc__l2"><span class="toc__num">5.14.</span>Integracja i sprawdzenie działania aplikacji</li>
+    <li><span class="toc__num">6.</span>Podsumowanie</li>
+  </ul>
+</div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════ SEKCJA 1 ═══════════════════ -->
+<div class="page">
+<h1 class="section-title">1. Cel projektu</h1>
+<p>Celem projektu było przygotowanie aplikacji webowej wspierającej obsługę kliniki ortodontycznej. Orthodontic Clinic App jest systemem biznesowym przeznaczonym dla pracowników recepcji lub gabinetu. Aplikacja umożliwia zarządzanie podstawowymi danymi kliniki, w szczególności pacjentami, lekarzami oraz wizytami.</p>
+<p>Projekt realizuje podstawowe operacje CRUD: dodawanie danych, odczytywanie danych, edycję oraz usuwanie rekordów. System składa się z osobnego backendu REST API oraz aplikacji frontendowej wykonanej w Vue 3.</p>
+
+<!-- ═══════════════════ SEKCJA 2 ═══════════════════ -->
+<h1 class="section-title">2. Założenia projektu</h1>
+
+<h2 class="subsection-title">2.1. Architektura aplikacji</h2>
+<p>Aplikacja została przygotowana w architekturze klient-serwer. Frontend odpowiada za interfejs użytkownika, routing oraz komunikację z API. Backend odpowiada za kontrolery REST, obsługę logiki zapisu i odczytu danych oraz połączenie z bazą danych.</p>
+<p>Ogólny przepływ działania aplikacji: użytkownik korzysta z aplikacji Vue, frontend wysyła zapytania do REST API, backend obsługuje zapytania przez kontrolery i Entity Framework Core, a dane są zapisywane w bazie SQL Server.</p>
+<img src="2.1. Architektura aplikacji.png" alt="Struktura folderów projektu w VS Code" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 1.2rem;display:block;"/>
+
+<h2 class="subsection-title">2.2. Struktura projektu</h2>
+<p>Projekt jest podzielony na dwie główne części:</p>
+<ul>
+  <li><code>backend/OrthodonticClinic.Api</code> – aplikacja ASP.NET Core Web API</li>
+  <li><code>frontend/</code> – aplikacja Vue 3 + TypeScript + Vite</li>
+</ul>
+
+<h2 class="subsection-title">2.3. Wybrane technologie i uzasadnienie</h2>
+<table class="data-table">
+  <thead><tr><th>Obszar</th><th>Technologia</th><th>Uzasadnienie</th></tr></thead>
+  <tbody>
+    <tr><td>Backend</td><td>ASP.NET Core Web API</td><td>Umożliwia stworzenie REST API z kontrolerami obsługującymi zapytania HTTP.</td></tr>
+    <tr><td>Backend</td><td>Entity Framework Core</td><td>Pozwala mapować modele aplikacji na tabele w bazie danych i wykonywać operacje CRUD.</td></tr>
+    <tr><td>Backend</td><td>SQL Server</td><td>Realna baza danych używana do przechowywania pacjentów, lekarzy, wizyt i dokumentów.</td></tr>
+    <tr><td>Backend</td><td>Swagger</td><td>Umożliwia testowanie endpointów API bezpośrednio z przeglądarki.</td></tr>
+    <tr><td>Frontend</td><td>Vue 3</td><td>Framework front-end użyty do budowy interfejsu użytkownika.</td></tr>
+    <tr><td>Frontend</td><td>TypeScript</td><td>Zapewnia typowanie danych i zwiększa bezpieczeństwo kodu.</td></tr>
+    <tr><td>Frontend</td><td>Vue Router</td><td>Obsługuje nawigację pomiędzy widokami aplikacji bez przeładowywania strony.</td></tr>
+    <tr><td>Frontend</td><td>Axios</td><td>Służy do komunikacji frontendu z backendem REST API.</td></tr>
+    <tr><td>Frontend</td><td>Vite</td><td>Narzędzie do uruchamiania i budowania aplikacji frontendowej.</td></tr>
+    <tr><td>Infra</td><td>Docker / docker-compose</td><td>Konteneryzacja aplikacji umożliwiająca uruchomienie na dowolnym środowisku.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════ SEKCJA 3 ═══════════════════ -->
+<div class="page">
+<h1 class="section-title">3. Baza danych</h1>
+<p>W aplikacji przewidziano główne encje odpowiadające rzeczywistym elementom działania kliniki ortodontycznej:</p>
+<ul>
+  <li><strong>Patients</strong> – pacjenci kliniki,</li>
+  <li><strong>Doctors</strong> – lekarze / ortodonci,</li>
+  <li><strong>Appointments</strong> – wizyty przypisane do pacjentów i lekarzy,</li>
+  <li><strong>PatientDocuments</strong> – dokumenty binarne (pliki PDF, JPG, DOC) przypisane do pacjentów.</li>
+</ul>
+<p>Relacje w bazie pozwalają powiązać wizytę z konkretnym pacjentem oraz konkretnym lekarzem. Dokument jest powiązany z pacjentem przez klucz obcy <code>PatientId</code>. Dane binarne pliku są przechowywane jako kolumna <code>varbinary(max)</code>, co pozwala przechowywać pliki dowolnego rozmiaru bezpośrednio w bazie danych SQL Server.</p>
+<img src="3. Baza danych.png" alt="AppDbContext.cs — DbSety i dane startowe" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 1.2rem;display:block;"/>
+
+<!-- ═══════════════════ SEKCJA 4 ═══════════════════ -->
+<h1 class="section-title">4. Funkcjonalność aplikacji</h1>
+<p>Aplikacja składa się z kilku widoków i modułów. Główne funkcjonalności systemu obejmują zarządzanie pacjentami, lekarzami, wizytami, dokumentami pacjenta oraz panel główny z podsumowaniem danych.</p>
+
+<h2 class="subsection-title">4.1. Panel główny aplikacji</h2>
+<p>Panel główny jest stroną startową aplikacji. Po wejściu do systemu użytkownik otrzymuje szybki podgląd najważniejszych informacji oraz może przejść do głównych modułów aplikacji.</p>
+<ul>
+  <li>wyświetlenie liczby pacjentów zapisanych w systemie,</li>
+  <li>wyświetlenie liczby lekarzy dostępnych w klinice,</li>
+  <li>podsumowanie specjalizacji lekarzy,</li>
+  <li>lista ostatnio dodanych pacjentów,</li>
+  <li>klikalne kafelki prowadzące do modułów pacjentów i lekarzy.</li>
+</ul>
+<p>Dane w panelu głównym są pobierane z serwisów API, a wartości podsumowań są obliczane po stronie frontendu z wykorzystaniem właściwości <code>computed</code>.</p>
+<img src="4.1.1. Panel główny aplikacji.png" alt="Panel główny — górna część" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 0.5rem;display:block;"/>
+<img src="4.1.2. Panel główny aplikacji.png" alt="Panel główny — dolna część" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 1.2rem;display:block;"/>
+
+<h2 class="subsection-title">4.2. Moduł lekarzy</h2>
+<p>Moduł lekarzy pozwala zarządzać danymi lekarzy pracujących w klinice ortodontycznej. Został przygotowany po stronie backendu oraz frontendu.</p>
+<ul>
+  <li>wyświetlanie listy lekarzy,</li>
+  <li>wyszukiwanie lekarzy po imieniu, nazwisku lub specjalizacji,</li>
+  <li>dodawanie nowego lekarza,</li>
+  <li>edycja danych lekarza,</li>
+  <li>usuwanie lekarza z potwierdzeniem w modalu,</li>
+  <li>podgląd szczegółów lekarza.</li>
+</ul>
+
+<h3 class="subsubsection-title">4.2.1. Backend modułu lekarzy</h3>
+<table class="data-table">
+  <thead><tr><th>Metoda</th><th>Endpoint</th><th>Opis</th></tr></thead>
+  <tbody>
+    <tr><td>GET</td><td>/api/Doctor</td><td>Pobranie listy lekarzy</td></tr>
+    <tr><td>GET</td><td>/api/Doctor/{id}</td><td>Pobranie danych jednego lekarza</td></tr>
+    <tr><td>POST</td><td>/api/Doctor</td><td>Dodanie nowego lekarza</td></tr>
+    <tr><td>PUT</td><td>/api/Doctor/{id}</td><td>Aktualizacja danych lekarza</td></tr>
+    <tr><td>DELETE</td><td>/api/Doctor/{id}</td><td>Usunięcie lekarza</td></tr>
+  </tbody>
+</table>
+
+<h3 class="subsubsection-title">4.2.2. Frontend modułu lekarzy</h3>
+<table class="data-table">
+  <thead><tr><th>Plik</th><th>Zastosowanie</th></tr></thead>
+  <tbody>
+    <tr><td>src/types/doctor.ts</td><td>Typy TypeScript dla lekarza i formularza</td></tr>
+    <tr><td>src/services/doctorService.ts</td><td>Funkcje komunikujące się z endpointem /api/Doctor przez Axios</td></tr>
+    <tr><td>src/views/doctors</td><td>Widoki listy, dodawania, edycji i szczegółów lekarza</td></tr>
+    <tr><td>src/components/doctors/DoctorTable.vue</td><td>Komponent tabeli lekarzy z akcjami</td></tr>
+    <tr><td>src/components/doctors/DoctorForm.vue</td><td>Wspólny formularz dodawania i edycji lekarza</td></tr>
+    <tr><td>src/components/doctors/DoctorDeleteModal.vue</td><td>Modal potwierdzający usunięcie lekarza</td></tr>
+  </tbody>
+</table>
+<p>Lista lekarzy korzysta z filtrowania po stronie frontendu. Formularz lekarza posiada prostą walidację pól wymaganych: imienia, nazwiska i specjalizacji. Usuwanie lekarza odbywa się przez modal z potwierdzeniem, który wykorzystuje mechanizmy <code>Teleport</code> oraz <code>Transition</code>.</p>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══ 4.3 ═══ -->
+<div class="page">
+<h2 class="subsection-title">4.3. Moduł pacjentów</h2>
+<p>Moduł pacjentów obejmuje pełny zestaw operacji CRUD: wyświetlanie listy pacjentów, dodawanie nowego pacjenta, edycję danych, podgląd szczegółów oraz usuwanie z potwierdzeniem w modalu. Lista pacjentów prezentuje dane w tabeli z kolumnami: imię, nazwisko, telefon, email, data urodzenia oraz akcje. Na urządzeniach mobilnych lista przełącza się na widok kart.</p>
+<p>Formularz dodawania i edycji pacjenta zawiera walidację pól wymaganych oraz walidację formatu adresu email. Usuwanie odbywa się przez modal z potwierdzeniem. Po wykonaniu operacji wyświetlany jest alert informujący o sukcesie lub błędzie.</p>
+<p>Frontend modułu pacjentów wykorzystuje następujące komponenty i widoki:</p>
+<ul>
+  <li><code>PatientsListView.vue</code> — lista pacjentów</li>
+  <li><code>PatientAddView.vue</code> — formularz dodawania</li>
+  <li><code>PatientEditView.vue</code> — formularz edycji</li>
+  <li><code>PatientDetailsView.vue</code> — szczegóły pacjenta z historią wizyt i dokumentami</li>
+  <li><code>PatientTable.vue</code> — komponent tabeli z kartami mobile</li>
+  <li><code>PatientForm.vue</code> — wspólny formularz dodawania i edycji</li>
+  <li><code>ConfirmDeleteModal.vue</code> — modal potwierdzający usunięcie</li>
+  <li><code>AppAlert.vue</code>, <code>AppSpinner.vue</code>, <code>AppIcon.vue</code> — komponenty pomocnicze</li>
+</ul>
+<p>Moduł pacjentów wykorzystuje różne mechanizmy Vue 3. Formularz pacjenta obsługuje zarówno dodawanie, jak i edycję — możliwe dzięki zastosowaniu własnego v-model przez prop <code>modelValue</code>. Pola formularza są na bieżąco walidowane: błędy pojawiają się przy opuszczeniu pola (<code>@blur</code>) lub próbie zapisu, a ich obecność zmienia wygląd pola przez dynamiczne przypisanie klasy CSS (<code>:class</code>). Modal potwierdzający usunięcie pacjenta pojawia się z animacją dzięki komponentowi <code>Transition</code>. Interfejs korzysta również z własnych ikon SVG zaimplementowanych w komponencie <code>AppIcon.vue</code>.</p>
+
+<img src="4.3.1. Moduł pacjentów.png" alt="Lista pacjentów" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 0.5rem;display:block;"/>
+<img src="4.3.2. Moduł pacjentów.png" alt="Szczegóły pacjenta" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 0.5rem;display:block;"/>
+<img src="4.3.3. Moduł pacjentów.png" alt="Formularz edycji pacjenta" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 1.2rem;display:block;"/>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══ 4.4 MODUŁ WIZYT ═══ -->
+<div class="page">
+<h2 class="subsection-title">4.4. Moduł wizyt</h2>
+<p>Moduł wizyt obsługuje planowanie i zarządzanie wizytami w klinice ortodontycznej. Wizyta jest powiązana z pacjentem i lekarzem, zawiera datę i godzinę, typ wizyty, status oraz notatki. Moduł dostępny jest pod adresami <code>/appointments</code> (kalendarz) oraz <code>/appointments/list</code> (lista tabelaryczna).</p>
+
+<p>Funkcjonalności modułu:</p>
+<ul>
+  <li>widok kalendarza miesięcznego i tygodniowego z kolorowanymi blokami wizyt,</li>
+  <li>panel boczny kalendarza z harmonogramem wybranego dnia,</li>
+  <li>dodawanie wizyty bezpośrednio z kalendarza (kliknięcie „+" na dniu),</li>
+  <li>popup wizyty z możliwością zmiany statusu i usunięcia bez opuszczania kalendarza,</li>
+  <li>lista wizyt z filtrami statusu, filtrami lekarza i wyszukiwarką tekstową,</li>
+  <li>dodawanie i edycja wizyty przez dedykowany formularz,</li>
+  <li>historia wizyt w widoku szczegółów pacjenta.</li>
+</ul>
+
+<h3 class="subsubsection-title">4.4.1. Backend modułu wizyt</h3>
+<p>Po stronie backendu przygotowano kontroler <code>AppointmentController</code> z pełnym zestawem endpointów CRUD oraz dodatkowym endpointem PATCH do zmiany statusu.</p>
+<table class="data-table">
+  <thead><tr><th>Metoda</th><th>Endpoint</th><th>Opis</th></tr></thead>
+  <tbody>
+    <tr><td>GET</td><td>/api/Appointment</td><td>Lista wszystkich wizyt z nazwami pacjenta i lekarza</td></tr>
+    <tr><td>GET</td><td>/api/Appointment/{id}</td><td>Szczegóły wizyty</td></tr>
+    <tr><td>POST</td><td>/api/Appointment</td><td>Dodanie nowej wizyty</td></tr>
+    <tr><td>PUT</td><td>/api/Appointment/{id}</td><td>Aktualizacja wizyty</td></tr>
+    <tr><td>PATCH</td><td>/api/Appointment/{id}/status</td><td>Zmiana samego statusu wizyty</td></tr>
+    <tr><td>DELETE</td><td>/api/Appointment/{id}</td><td>Usunięcie wizyty</td></tr>
+  </tbody>
+</table>
+<p>Endpoint GET zwraca dane z dołączonymi nazwami pacjenta i lekarza dzięki użyciu <code>.Include()</code> i projekcji LINQ. Endpoint PATCH <code>/status</code> umożliwia zmianę tylko pola Status bez przesyłania całego modelu — jest używany przez popup kalendarza i widok szczegółów pacjenta.</p>
+
+<h3 class="subsubsection-title">4.4.2. Frontend modułu wizyt</h3>
+<table class="data-table">
+  <thead><tr><th>Plik</th><th>Zastosowanie</th></tr></thead>
+  <tbody>
+    <tr><td>src/types/appointment.ts</td><td>Typy, stałe (VISIT_TYPES, APPOINTMENT_STATUS_OPTIONS), funkcje pomocnicze</td></tr>
+    <tr><td>src/services/appointmentService.ts</td><td>Komunikacja z /api/Appointment (CRUD + PATCH status)</td></tr>
+    <tr><td>src/views/appointments/AppointmentCalendarView.vue</td><td>Główny kalendarz miesięczny i tygodniowy</td></tr>
+    <tr><td>src/views/appointments/AppointmentListView.vue</td><td>Tabela wizyt z filtrami statusu i lekarza</td></tr>
+    <tr><td>src/views/appointments/AppointmentAddView.vue</td><td>Formularz dodawania wizyty</td></tr>
+    <tr><td>src/views/appointments/AppointmentEditView.vue</td><td>Formularz edycji wizyty</td></tr>
+    <tr><td>src/views/appointments/AppointmentDetailsView.vue</td><td>Podgląd szczegółów wizyty</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Widok kalendarza</strong> (<code>AppointmentCalendarView.vue</code>) wyświetla siatkę miesięczną obliczaną przez właściwość <code>computed</code> z uwzględnieniem dni tygodnia i pustych komórek. Każdy lekarz ma przypisany kolor z palety, który jest spójny w całym widoku i opisany legendą. Kliknięcie dnia otwiera panel boczny z pełnym harmonogramem. Kliknięcie wizyty otwiera popup renderowany przez <code>&lt;Teleport to="body"&gt;</code>, który umożliwia zmianę statusu i usunięcie bez nawigacji. Widok tygodniowy prezentuje wizyty jako bloki pozycjonowane absolutnie względem osi czasu 8:00–20:00.</p>
+
+<p><strong>Formularz wizyty</strong> został zaprojektowany z naciskiem na czytelność kliniczną: data wyróżniona jest kartą z gradientem niebieskim, typ wizyty wybierany jest przez klikalne kafelki z ikonami (🆕 Pierwsza konsultacja, 🔧 Kontrola aparatu, 🦷 Zakładanie aparatu, ✅ Zdjęcie aparatu, 📐 Retainer, 📌 Inne), a status — przez kolorowe pill-buttons. Formularz czyta parametry URL (<code>?date</code>, <code>?time</code>, <code>?doctorId</code>, <code>?patientId</code>), dzięki czemu kliknięcie „+" na konkretnym dniu kalendarza automatycznie wypełnia pole daty i lekarza.</p>
+
+<p><strong>Lista wizyt</strong> (<code>AppointmentListView.vue</code>) oferuje filtrowanie przez klikalne przyciski statusu z licznikami (Wszystkie / Zaplanowane / Potwierdzone / Zakończone / Anulowane / Nieobecność), select lekarza oraz wyszukiwarkę tekstową po imieniu i nazwisku pacjenta, lekarzu i typie wizyty. Wyniki są sortowane malejąco według daty.</p>
+
+<img src="4.4.2.1. Frontend modułu wizyt.png" alt="Kalendarz miesięczny wizyt" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 0.5rem;display:block;"/>
+<img src="4.4.2.2. Frontend modułu wizyt.png" alt="Popup wizyty" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 0.5rem;display:block;"/>
+<img src="4.4.2.3. Frontend modułu wizyt.png" alt="Formularz dodawania wizyty" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 0.5rem;display:block;"/>
+<img src="4.4.2.4. Frontend modułu wizyt.png" alt="Lista wizyt z filtrami" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 1.2rem;display:block;"/>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══ 4.5 DOKUMENTY ═══ -->
+<div class="page">
+<h2 class="subsection-title">4.5. Moduł dokumentów pacjenta</h2>
+<p>Moduł dokumentów umożliwia przesyłanie i pobieranie plików binarnych powiązanych z pacjentem. Jest dostępny w widoku szczegółów pacjenta (<code>PatientDetailsView.vue</code>) i obsługuje pliki w formatach PDF, JPG, PNG, GIF, DOC i DOCX o rozmiarze do 10 MB.</p>
+
+<p>Funkcjonalności modułu:</p>
+<ul>
+  <li>lista dokumentów pacjenta z ikoną typu pliku, nazwą, rozmiarem i datą przesłania,</li>
+  <li>przesyłanie nowego pliku z opcjonalnym polem opisu,</li>
+  <li>pobieranie pliku (plik jest automatycznie zapisywany na dysku użytkownika),</li>
+  <li>usuwanie dokumentu z potwierdzeniem,</li>
+  <li>walidacja typu MIME i rozmiaru pliku po stronie backendu.</li>
+</ul>
+
+<h3 class="subsubsection-title">4.5.1. Backend modułu dokumentów</h3>
+<table class="data-table">
+  <thead><tr><th>Metoda</th><th>Endpoint</th><th>Opis</th></tr></thead>
+  <tbody>
+    <tr><td>GET</td><td>/api/PatientDocument/patient/{patientId}</td><td>Lista dokumentów pacjenta (metadane, bez danych binarnych)</td></tr>
+    <tr><td>GET</td><td>/api/PatientDocument/download/{id}</td><td>Pobranie pliku binarnego</td></tr>
+    <tr><td>POST</td><td>/api/PatientDocument/upload</td><td>Przesłanie pliku (multipart/form-data)</td></tr>
+    <tr><td>DELETE</td><td>/api/PatientDocument/{id}</td><td>Usunięcie dokumentu</td></tr>
+  </tbody>
+</table>
+<p>Upload przyjmuje plik przez <code>IFormFile</code>, odczytuje bajty do pamięci i zapisuje je w bazie danych jako <code>varbinary(max)</code>. Download zwraca <code>File(byte[], contentType, fileName)</code>. Metadane są zwracane bez danych binarnych, co zapobiega zbędnemu przesyłaniu dużych plików przy listowaniu. Model danych <code>PatientDocument</code> zawiera pola: <code>FileName</code>, <code>ContentType</code>, <code>FileData</code> (<code>byte[]</code>), <code>FileSize</code>, <code>Description</code>, <code>UploadedAt</code>.</p>
+
+<h3 class="subsubsection-title">4.5.2. Frontend modułu dokumentów</h3>
+<table class="data-table">
+  <thead><tr><th>Plik</th><th>Zastosowanie</th></tr></thead>
+  <tbody>
+    <tr><td>src/types/document.ts</td><td>Interfejs PatientDocument, funkcje formatFileSize i fileTypeIcon</td></tr>
+    <tr><td>src/services/documentService.ts</td><td>Upload (FormData), download (blob URL), lista, usunięcie</td></tr>
+  </tbody>
+</table>
+<p>Pobieranie pliku po stronie frontendu używa <code>axios</code> z <code>responseType: 'blob'</code>. Z odpowiedzi tworzony jest tymczasowy URL obiektu (<code>URL.createObjectURL</code>), a następnie programatycznie klikany tag <code>&lt;a&gt;</code> z atrybutem <code>download</code> — dzięki czemu plik zapisuje się na dysku użytkownika bez otwierania w przeglądarce.</p>
+
+<img src="4.5.2. Frontend modułu dokumentów.png" alt="Sekcja dokumentów pacjenta" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 1.2rem;display:block;"/>
+
+<h2 class="subsection-title">4.6. Konteneryzacja aplikacji</h2>
+<p>Projekt przygotowano do uruchamiania w kontenerach Docker. Dzięki konteneryzacji aplikacja może być uruchomiona na dowolnym środowisku bez konieczności ręcznej instalacji .NET SDK, Node.js czy SQL Server.</p>
+<p>Przygotowano następujące pliki konfiguracyjne:</p>
+<ul>
+  <li><code>backend/OrthodonticClinic.Api/Dockerfile</code> — obraz backendu oparty na <code>mcr.microsoft.com/dotnet/aspnet:10.0</code>; etap <code>build</code> kompiluje aplikację .NET, etap <code>final</code> uruchamia skompilowany plik DLL,</li>
+  <li><code>frontend/Dockerfile</code> — etap <code>build</code> buduje aplikację Vue przez <code>npm run build</code>, etap <code>final</code> serwuje pliki statyczne przez serwer Nginx,</li>
+  <li><code>frontend/nginx.conf</code> — konfiguracja Nginx z obsługą routingu SPA (<code>try_files $uri /index.html</code>) oraz proxy dla zapytań <code>/api/</code> do serwisu backendowego,</li>
+  <li><code>docker-compose.yml</code> — orkiestracja trzech serwisów: <code>db</code> (SQL Server 2022), <code>backend</code> (API .NET), <code>frontend</code> (Nginx); serwis <code>db</code> posiada healthcheck, a <code>backend</code> uruchamia się dopiero po jego pozytywnym wyniku.</li>
+</ul>
+<img src="4.6. Konteneryzacja aplikacji.png" alt="docker-compose.yml" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 1.2rem;display:block;"/>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════ SEKCJA 5 ═══════════════════ -->
+<div class="page">
+<h1 class="section-title">5. Przygotowanie projektu</h1>
+
+
+<h2 class="subsection-title">5.2. Przygotowanie repozytorium i struktury projektu</h2>
+<p>Projekt został umieszczony w repozytorium GitHub, co pozwoliło na wspólną pracę zespołu oraz kontrolowanie zmian w kodzie. Struktura projektu została podzielona na dwie główne części: backend oraz frontend. Backend został przygotowany jako aplikacja ASP.NET Core Web API, natomiast frontend jako osobna aplikacja Vue 3 z TypeScript i Vite. Dzięki takiemu podziałowi projekt zachowuje architekturę klient-serwer, gdzie frontend odpowiada za interfejs użytkownika, a backend za obsługę danych i komunikację z bazą.</p>
+
+<h2 class="subsection-title">5.3. Przygotowanie modeli danych i bazy</h2>
+<p>Kolejnym etapem było przygotowanie modeli danych odpowiadających głównym elementom systemu kliniki. W projekcie utworzono modele pacjenta, lekarza, wizyty oraz dokumentu pacjenta. Modele te odpowiadają tabelom w bazie danych i są wykorzystywane przez Entity Framework Core.</p>
+<p>W bazie danych przewidziano tabele <code>Patients</code>, <code>Doctors</code>, <code>Appointments</code> oraz <code>PatientDocuments</code>. Wizyta jest powiązana z pacjentem oraz lekarzem, a dokument — z pacjentem. Takie relacje pozwalają odwzorować rzeczywisty proces obsługi wizyt i dokumentacji w klinice ortodontycznej.</p>
+<p>Przygotowano kontekst bazy danych <code>AppDbContext</code>, w którym zdefiniowano zbiory danych dla poszczególnych encji oraz przykładowe dane startowe. Dla tabeli <code>PatientDocuments</code> wygenerowano i zastosowano migrację EF Core. Dzięki temu po uruchomieniu aplikacji możliwe było testowanie działania systemu na gotowych rekordach.</p>
+<img src="5.3. Przygotowanie modeli danych i bazy.png" alt="Model Appointment.cs z relacjami" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 1.2rem;display:block;"/>
+
+<h2 class="subsection-title">5.4. Przygotowanie backendu i kontrolerów REST API</h2>
+<p>Po przygotowaniu modeli danych rozpoczęto tworzenie kontrolerów REST API dla głównych encji aplikacji. Kontrolery odpowiadają za obsługę zapytań HTTP wysyłanych z frontendu oraz za komunikację z bazą danych przez Entity Framework Core. Dla modułów aplikacji przewidziano standardowe operacje CRUD, czyli dodawanie, pobieranie, edycję oraz usuwanie danych.</p>
+<p>Kontrolery zostały przygotowane dla poszczególnych części systemu: <code>PatientController</code>, <code>DoctorController</code>, <code>AppointmentController</code> oraz <code>PatientDocumentController</code>. W kontrolerach zastosowano obsługę błędów za pomocą bloków <code>try/catch</code>. Dzięki temu w przypadku problemu backend zwraca odpowiedni kod HTTP oraz komunikat w formacie JSON. Endpointy były sprawdzane w Swaggerze przed podłączeniem ich do aplikacji frontendowej.</p>
+
+<h2 class="subsection-title">5.5. Testowanie backendu w Swaggerze</h2>
+<p>Przed podłączeniem frontendu sprawdzono działanie endpointów backendu w Swaggerze. Testowano między innymi pobieranie listy lekarzy, dodawanie nowego lekarza, edycję danych, usuwanie oraz pobieranie szczegółów po identyfikatorze. Testowanie w Swaggerze pozwoliło upewnić się, że backend poprawnie komunikuje się z bazą danych i zwraca odpowiednie odpowiedzi HTTP.</p>
+
+<h2 class="subsection-title">5.6. Przygotowanie struktury frontendu</h2>
+<p>Po stronie frontendu przygotowano strukturę aplikacji Vue 3. Projekt został podzielony na foldery przechowujące widoki, komponenty, serwisy API, typy danych, routing oraz zasoby graficzne. Widoki odpowiadają konkretnym stronom aplikacji. Komponenty zostały wykorzystane do elementów wielokrotnego użytku, takich jak tabele, formularze, modale, alerty, ikony i pasek nawigacji.</p>
+<img src="5.6. Przygotowanie struktury frontendu.png" alt="Struktura folderu frontend/src" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 1.2rem;display:block;"/>
+
+<h2 class="subsection-title">5.7. Przygotowanie routingu i nawigacji</h2>
+<p>Skonfigurowano routing aplikacji z wykorzystaniem Vue Router. Moduły pacjentów, lekarzy i wizyt otrzymały osobne ścieżki z podstronami dla dodawania, edycji i szczegółów. Dodano globalny pasek nawigacji widoczny na wszystkich stronach aplikacji.</p>
+<img src="5.7.1. Przygotowanie routingu i nawigacji.png" alt="Fragment router/index.ts" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 0.5rem;display:block;"/>
+<img src="5.7.2. Przygotowanie routingu i nawigacji.png" alt="Pasek nawigacji aplikacji" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 1.2rem;display:block;"/>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══ 5.8 PACJENCI ═══ -->
+<div class="page">
+<h2 class="subsection-title">5.8. Przygotowanie modułu pacjentów</h2>
+<p>Moduł pacjentów został przygotowany jako jedna z głównych części aplikacji, obejmująca zarówno backend REST API, jak i kompletny interfejs frontendowy. Po stronie backendu dodano kontroler <code>PatientController</code> obsługujący pełny zestaw operacji CRUD dla encji <code>Patient</code>. Każdy endpoint otoczono blokiem <code>try/catch</code>, dzięki czemu w przypadku błędu backend zwraca odpowiedni kod HTTP wraz z komunikatem w formacie JSON.</p>
+<p>Po stronie frontendu przygotowano strukturę folderów z widokami, komponentami, serwisem API oraz typami TypeScript. Komunikacja z backendem odbywa się przez <code>patientService.ts</code> wykorzystujący Axios. Routing SPA skonfigurowano z wykorzystaniem Vue Router — moduł pacjentów obsługuje ścieżki <code>/patients</code>, <code>/patients/new</code>, <code>/patients/:id</code> oraz <code>/patients/:id/edit</code>.</p>
+<p>Formularz pacjenta posiada walidację pól wymaganych oraz walidację formatu adresu email. Komponent <code>PatientForm.vue</code> jest współdzielony między widokiem dodawania i edycji. Modal usuwania wykorzystuje mechanizmy <code>Teleport</code> i <code>Transition</code>. Interfejs jest responsywny — na urządzeniach mobilnych tabela przełącza się na widok kart.</p>
+<img src="5.8.1. Przygotowanie modułu pacjentów.png" alt="patientService.ts" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 0.5rem;display:block;"/>
+<img src="5.8.2. Przygotowanie modułu pacjentów.png" alt="PatientForm.vue — props, emits, reactive state" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 1.2rem;display:block;"/>
+
+<h2 class="subsection-title">5.9. Przygotowanie modułu lekarzy</h2>
+<p>W ramach modułu lekarzy przygotowano pełną obsługę CRUD po stronie backendu i frontendu. Po stronie backendu dodano <code>DoctorController</code>, a po stronie frontendu przygotowano typy danych, serwis API, widoki oraz komponenty.</p>
+<p>Moduł lekarzy składa się z listy lekarzy, wyszukiwarki, formularza dodawania, formularza edycji, widoku szczegółów oraz modala potwierdzającego usunięcie. Formularz lekarza posiada walidację wymaganych pól: imienia, nazwiska i specjalizacji. Dla modułu lekarzy przygotowano komponenty <code>DoctorTable.vue</code>, <code>DoctorForm.vue</code> oraz <code>DoctorDeleteModal.vue</code>. Modal usuwania wykorzystuje mechanizmy <code>Teleport</code> i <code>Transition</code>.</p>
+<img src="5.9.1. Przygotowanie modułu lekarzy.png" alt="Struktura plików modułu lekarzy" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 0.5rem;display:block;"/>
+<img src="5.9.2. Przygotowanie modułu lekarzy.png" alt="doctorService.ts" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 0.5rem;display:block;"/>
+<img src="5.9.3. Przygotowanie modułu lekarzy.png" alt="DoctorForm.vue — script setup" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 1.2rem;display:block;"/>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══ 5.10 WIZYTY ═══ -->
+<div class="page">
+<h2 class="subsection-title">5.10. Przygotowanie modułu wizyt</h2>
+<p>Moduł wizyt był przygotowywany etapami: od modelu danych i backendu, przez typy i serwisy TypeScript, aż po widoki frontendowe.</p>
+
+<p>W pierwszym kroku dodano model <code>Appointment</code> z relacjami do <code>Patient</code> i <code>Doctor</code> (klucze obce). Następnie przygotowano <code>AppointmentController</code> z pełnym zestawem endpointów CRUD. Endpointy GET zwracają dane z dołączonymi nazwami pacjenta i lekarza za pomocą LINQ <code>.Include()</code> i projekcji anonimowej — dzięki temu frontend nie musi wykonywać dodatkowych zapytań. Dodano też endpoint <code>PATCH /{id}/status</code> do zmiany samego statusu, co umożliwia szybką aktualizację bez przesyłania całego modelu.</p>
+
+<p>Po stronie frontendu zdefiniowano typy TypeScript w <code>appointment.ts</code>: interfejs <code>Appointment</code>, <code>AppointmentFormPayload</code>, typ unii <code>AppointmentStatus</code> ('Zaplanowana' | 'Potwierdzona' | 'Zakończona' | 'Anulowana' | 'Nieobecność'), stałe <code>VISIT_TYPES</code> i <code>APPOINTMENT_STATUS_OPTIONS</code> oraz funkcje pomocnicze do formatowania dat. Serwis <code>appointmentService.ts</code> obsługuje komunikację z backendem przez Axios.</p>
+
+<p>Głównym widokiem modułu jest <code>AppointmentCalendarView.vue</code>. Komponent pobiera wizyty i lekarzy, a siatkę kalendarza oblicza właściwość <code>computed calendarCells</code> z uwzględnieniem dni tygodnia, pustych komórek i bieżącego dnia. Kolor każdego lekarza jest mapowany ze stałej palety kolorów (<code>DOCTOR_PALETTE</code>). Popup wizyty jest renderowany przez <code>&lt;Teleport to="body"&gt;</code> i wywołuje endpoint PATCH do zmiany statusu bez nawigacji do innego widoku.</p>
+
+<p>Formularz wizyt (<code>AppointmentAddView.vue</code>, <code>AppointmentEditView.vue</code>) obsługuje prefilling daty i lekarza z parametrów URL, co eliminuje ręczne wpisywanie daty przy tworzeniu wizyty z kalendarza. Widok listy wizyt (<code>AppointmentListView.vue</code>) oferuje filtry statusu z licznikami, select lekarza i wyszukiwarkę tekstową.</p>
+
+<img src="5.10.1. Przygotowanie modułu wizyt.png" alt="AppointmentController — PATCH /status" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 0.5rem;display:block;"/>
+<img src="5.10.2. Przygotowanie modułu wizyt.png" alt="AppointmentCalendarView — computed calendarCells" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 0.5rem;display:block;"/>
+<img src="5.10.3. Przygotowanie modułu wizyt.png" alt="Widok kalendarza tygodniowego" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 1.2rem;display:block;"/>
+
+<h2 class="subsection-title">5.11. Przygotowanie modułu dokumentów pacjenta</h2>
+<p>Moduł dokumentów binarnych został przygotowany jako rozszerzenie widoku szczegółów pacjenta. Po stronie backendu dodano model <code>PatientDocument</code> z polem <code>FileData</code> (<code>byte[]</code>) mapowanym na kolumnę <code>varbinary(max)</code>. Kontroler <code>PatientDocumentController</code> obsługuje przesyłanie pliku przez <code>IFormFile</code> (<code>multipart/form-data</code>), pobieranie jako <code>FileContentResult</code> oraz usuwanie.</p>
+<p>Po stronie frontendu serwis <code>documentService.ts</code> obsługuje upload przez <code>FormData</code> i pobieranie przez <code>axios</code> z <code>responseType: 'blob'</code> — plik jest zapisywany na dysku użytkownika przez programatyczne kliknięcie tagu <code>&lt;a download&gt;</code>. Konfiguracja serwera Kestrel i <code>FormOptions</code> w <code>Program.cs</code> ustawia limit przesyłanych plików na 10 MB.</p>
+<img src="5.11.1. Przygotowanie modułu dokumentów pacjenta.png" alt="documentService.ts — downloadDocument z blob" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 0.5rem;display:block;"/>
+<img src="5.11.2. Przygotowanie modułu dokumentów pacjenta.png" alt="PatientDocumentController — Upload" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 1.2rem;display:block;"/>
+
+<h2 class="subsection-title">5.12. Przygotowanie panelu głównego</h2>
+<p>Jako stronę startową aplikacji przygotowano panel główny. Panel pobiera dane pacjentów i lekarzy przez serwisy API, a następnie prezentuje je w formie kafelków i krótkich podsumowań. Na obecnym etapie panel główny wyświetla liczbę pacjentów, liczbę lekarzy, liczbę specjalizacji, ostatnio dodanych pacjentów oraz lekarzy według specjalizacji. Kafelki pacjentów i lekarzy są klikalne i prowadzą do odpowiednich modułów aplikacji.</p>
+<img src="5.12. Przygotowanie panelu głównego.png" alt="DashboardView.vue — reaktywne zmienne i computed" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 1.2rem;display:block;"/>
+
+<h2 class="subsection-title">5.13. Konteneryzacja i konfiguracja Docker</h2>
+<p>Na końcowym etapie projektu przygotowano pliki Docker umożliwiające uruchomienie całej aplikacji przez jedno polecenie <code>docker-compose up</code>. Dockerfile backendu używa wieloetapowego buildu: etap <code>build</code> oparty na obrazie SDK kompiluje projekt, a etap <code>final</code> oparty na lżejszym obrazie runtime uruchamia gotowy plik DLL. Analogicznie Dockerfile frontendu buduje statyczne pliki Vue, a następnie serwuje je przez Nginx. Plik <code>docker-compose.yml</code> definiuje sieć wewnętrzną, zmienne środowiskowe połączenia z bazą i healthcheck SQL Servera, dzięki czemu backend czeka na gotowość bazy przed uruchomieniem.</p>
+
+<h2 class="subsection-title">5.14. Integracja i sprawdzenie działania aplikacji</h2>
+<p>Po przygotowaniu poszczególnych modułów sprawdzano komunikację między frontendem i backendem. Backend był uruchamiany lokalnie, a jego endpointy testowano w Swaggerze. Frontend uruchamiano jako aplikację Vite i sprawdzano, czy widoki poprawnie pobierają dane z API.</p>
+<p>W trakcie testowania sprawdzono między innymi działanie list, formularzy, walidacji, routingu, modali usuwania, kalendarza wizyt, uploadu i downloadu plików oraz panelu głównego. Dzięki temu można było upewnić się, że poszczególne części aplikacji są ze sobą połączone i działają jako jedna aplikacja SPA.</p>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════ SEKCJA 6 ═══════════════════ -->
+<div class="page">
+<h1 class="section-title">6. Podsumowanie</h1>
+<p>Orthodontic Clinic App jest kompletną aplikacją webową do zarządzania kliniką ortodontyczną, przygotowaną w architekturze klient-serwer. Backend oparty jest na ASP.NET Core 10 Web API z Entity Framework Core i bazą SQL Server. Frontend jest osobną aplikacją SPA opartą na Vue 3 z TypeScript, Vue Router, Pinia i Axios, uruchamianą przez Vite.</p>
+
+<p>Projekt realizuje pełen zestaw wymagań projektowych:</p>
+<ul>
+  <li><strong>CRUD REST API</strong> — cztery kontrolery (<code>PatientController</code>, <code>DoctorController</code>, <code>AppointmentController</code>, <code>PatientDocumentController</code>) z pełnymi operacjami GET, POST, PUT, PATCH, DELETE i odpowiednimi kodami HTTP (200, 201, 400, 404, 500),</li>
+  <li><strong>Osobny frontend</strong> — aplikacja SPA komunikująca się z API przez Axios, obsługująca wszystkie operacje CRUD dla każdej encji,</li>
+  <li><strong>Realna baza danych</strong> — SQL Server z migracjami EF Core i danymi startowymi (seed),</li>
+  <li><strong>Obsługa błędów</strong> — każdy endpoint otoczony blokiem try/catch zwracającym kod HTTP i komunikat JSON, po stronie frontendu komunikaty błędów wyświetlane przez komponent <code>AppAlert</code>,</li>
+  <li><strong>Dane binarne</strong> — przesyłanie i pobieranie plików (PDF, JPG, DOC) powiązanych z pacjentem; pliki przechowywane jako <code>varbinary(max)</code> w bazie danych, przesyłane przez <code>multipart/form-data</code>, pobierane jako blob,</li>
+  <li><strong>Konteneryzacja</strong> — Dockerfile dla backendu i frontendu oraz plik <code>docker-compose.yml</code> z SQL Server, healthcheckiem i siecią wewnętrzną.</li>
+</ul>
+
+<p>Interfejs użytkownika obejmuje: panel główny z KPI i skrótami do modułów, interaktywny kalendarz wizyt w widoku miesięcznym i tygodniowym, listę wizyt z filtrami, formularze pacjentów i lekarzy z walidacją, widoki szczegółów z historią wizyt oraz sekcję dokumentacji pacjenta z możliwością uploadu i pobierania plików.</p>
+
+<p>Projekt jest przechowywany w publicznym repozytorium GitHub pod adresem <strong>https://github.com/if660/Orthodontic_clinic_app</strong> i może być uruchomiony lokalnie lub w kontenerach Docker.</p>
+</div>
+
+</body>
+</html>
