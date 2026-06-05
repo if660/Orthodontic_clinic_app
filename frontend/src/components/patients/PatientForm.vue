@@ -88,6 +88,64 @@
           :disabled="submitting"
         />
       </div>
+
+      <template v-if="isMinor">
+        <div class="form-field form-field--full form-section-title">
+          <strong>Dane opiekuna prawnego (wymagane dla osoby niepełnoletniej)</strong>
+        </div>
+
+        <div class="form-field" :class="{ 'has-error': fieldErrors.guardianFullName }">
+          <label for="guardianFullName">
+            Imię i nazwisko opiekuna <span class="required" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="guardianFullName"
+            v-model="form.guardianFullName"
+            type="text"
+            :disabled="submitting"
+            :aria-invalid="!!fieldErrors.guardianFullName"
+            :aria-describedby="fieldErrors.guardianFullName ? 'guardianFullName-error' : undefined"
+            @blur="validateField('guardianFullName')"
+          />
+          <p v-if="fieldErrors.guardianFullName" id="guardianFullName-error" class="field-error">
+            {{ fieldErrors.guardianFullName }}
+          </p>
+        </div>
+
+        <div class="form-field" :class="{ 'has-error': fieldErrors.guardianPhone }">
+          <label for="guardianPhone">
+            Telefon opiekuna <span class="required" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="guardianPhone"
+            v-model="form.guardianPhone"
+            type="tel"
+            :disabled="submitting"
+            :aria-invalid="!!fieldErrors.guardianPhone"
+            :aria-describedby="fieldErrors.guardianPhone ? 'guardianPhone-error' : undefined"
+            @blur="validateField('guardianPhone')"
+          />
+          <p v-if="fieldErrors.guardianPhone" id="guardianPhone-error" class="field-error">
+            {{ fieldErrors.guardianPhone }}
+          </p>
+        </div>
+
+        <div class="form-field form-field--full" :class="{ 'has-error': fieldErrors.guardianEmail }">
+          <label for="guardianEmail">E-mail opiekuna</label>
+          <input
+            id="guardianEmail"
+            v-model="form.guardianEmail"
+            type="email"
+            :disabled="submitting"
+            :aria-invalid="!!fieldErrors.guardianEmail"
+            :aria-describedby="fieldErrors.guardianEmail ? 'guardianEmail-error' : undefined"
+            @blur="validateField('guardianEmail')"
+          />
+          <p v-if="fieldErrors.guardianEmail" id="guardianEmail-error" class="field-error">
+            {{ fieldErrors.guardianEmail }}
+          </p>
+        </div>
+      </template>
     </div>
 
     <AppAlert v-if="error" :message="error" variant="error" :dismissible="false" />
@@ -105,7 +163,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import AppAlert from '../common/AppAlert.vue'
 import AppSpinner from '../common/AppSpinner.vue'
 import type { PatientFormPayload } from '../../types/patient'
@@ -166,6 +224,23 @@ const validateAll = (): boolean => {
   return !hasFieldErrors(fieldErrors.value)
 }
 
+const isMinor = computed(() => {
+  if (!form.birthDate) return false
+
+  const birthDate = new Date(form.birthDate)
+  if (Number.isNaN(birthDate.getTime())) return false
+
+  const now = new Date()
+  let age = now.getFullYear() - birthDate.getFullYear()
+  const monthDiff = now.getMonth() - birthDate.getMonth()
+
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
+    age -= 1
+  }
+
+  return age < 18
+})
+
 const handleSubmit = () => {
   submitted.value = true
   if (!validateAll()) return
@@ -176,6 +251,9 @@ const handleSubmit = () => {
     phone: form.phone.trim(),
     email: form.email?.trim() || null,
     birthDate: form.birthDate || null,
+    guardianFullName: form.guardianFullName?.trim() || null,
+    guardianPhone: form.guardianPhone?.trim() || null,
+    guardianEmail: form.guardianEmail?.trim() || null,
   })
 }
 </script>
@@ -273,6 +351,11 @@ input:disabled {
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--color-border);
+}
+
+.form-section-title {
+  padding-top: 0.25rem;
+  color: var(--color-primary);
 }
 
 .form-actions .app-btn--primary {

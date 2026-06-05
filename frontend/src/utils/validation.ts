@@ -5,6 +5,9 @@ export interface FieldErrors {
   lastName?: string
   phone?: string
   email?: string
+  guardianFullName?: string
+  guardianPhone?: string
+  guardianEmail?: string
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -33,7 +36,39 @@ export function validatePatientForm(form: PatientFormPayload): FieldErrors {
     errors.email = 'Nieprawidłowy format adresu e-mail'
   }
 
+  const isMinor = isPatientMinor(form.birthDate)
+
+  if (isMinor && !(form.guardianFullName?.trim() ?? '')) {
+    errors.guardianFullName = 'Dla osoby niepełnoletniej wymagany jest opiekun prawny'
+  }
+
+  if (isMinor && !(form.guardianPhone?.trim() ?? '')) {
+    errors.guardianPhone = 'Numer telefonu opiekuna jest wymagany'
+  }
+
+  const guardianEmail = form.guardianEmail?.trim() ?? ''
+  if (guardianEmail && !isValidEmail(guardianEmail)) {
+    errors.guardianEmail = 'Nieprawidłowy format e-mail opiekuna'
+  }
+
   return errors
+}
+
+function isPatientMinor(birthDate?: string | null): boolean {
+  if (!birthDate) return false
+
+  const date = new Date(birthDate)
+  if (Number.isNaN(date.getTime())) return false
+
+  const today = new Date()
+  let age = today.getFullYear() - date.getFullYear()
+  const monthDifference = today.getMonth() - date.getMonth()
+
+  if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < date.getDate())) {
+    age -= 1
+  }
+
+  return age < 18
 }
 
 export function hasFieldErrors(errors: FieldErrors): boolean {

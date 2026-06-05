@@ -16,6 +16,8 @@ namespace OrthodonticClinic.Api.Data
 
         public DbSet<Appointment> Appointments { get; set; }
 
+        public DbSet<PatientDocument> PatientDocuments { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -28,7 +30,10 @@ namespace OrthodonticClinic.Api.Data
                     LastName = "Kowalska",
                     Phone = "500600700",
                     Email = "anna.kowalska@example.com",
-                    BirthDate = new DateTime(2001, 4, 12)
+                    BirthDate = new DateTime(2001, 4, 12),
+                    GuardianFullName = null,
+                    GuardianPhone = null,
+                    GuardianEmail = null
                 },
                 new Patient
                 {
@@ -37,7 +42,10 @@ namespace OrthodonticClinic.Api.Data
                     LastName = "Wiśniewski",
                     Phone = "600700800",
                     Email = "jan.wisniewski@example.com",
-                    BirthDate = new DateTime(1998, 9, 25)
+                    BirthDate = new DateTime(1998, 9, 25),
+                    GuardianFullName = null,
+                    GuardianPhone = null,
+                    GuardianEmail = null
                 }
             );
 
@@ -47,14 +55,24 @@ namespace OrthodonticClinic.Api.Data
                     Id = 1,
                     FirstName = "Marta",
                     LastName = "Nowak",
-                    Specialization = "Ortodoncja dziecięca"
+                    Specialization = "Ortodoncja dziecięca",
+                    LicenseNumber = "ORTO-PL-1001",
+                    AvailableDays = "Monday,Tuesday,Wednesday,Thursday",
+                    AvailabilityStart = "08:00",
+                    AvailabilityEnd = "15:00",
+                    ProfileNote = "Specjalizuje się w leczeniu dzieci i młodzieży."
                 },
                 new Doctor
                 {
                     Id = 2,
                     FirstName = "Adam",
                     LastName = "Zieliński",
-                    Specialization = "Ortodoncja dorosłych"
+                    Specialization = "Ortodoncja dorosłych",
+                    LicenseNumber = "ORTO-PL-1002",
+                    AvailableDays = "Monday,Wednesday,Friday",
+                    AvailabilityStart = "10:00",
+                    AvailabilityEnd = "18:00",
+                    ProfileNote = "Prowadzi skomplikowane przypadki ortodontyczne dorosłych."
                 }
             );
 

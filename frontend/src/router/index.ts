@@ -1,67 +1,82 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import DashboardView from '../views/dashboard/DashboardView.vue'
-
-import PatientsListView from '../views/patients/PatientsListView.vue'
-import PatientAddView from '../views/patients/PatientAddView.vue'
-import PatientEditView from '../views/patients/PatientEditView.vue'
-import PatientDetailsView from '../views/patients/PatientDetailsView.vue'
-
-import DoctorListView from '../views/doctors/DoctorListView.vue'
-import DoctorAddView from '../views/doctors/DoctorAddView.vue'
-import DoctorEditView from '../views/doctors/DoctorEditView.vue'
-import DoctorDetailsView from '../views/doctors/DoctorDetailsView.vue'
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
       name: 'dashboard',
-      component: DashboardView,
+      component: () => import('../views/dashboard/DashboardView.vue'),
     },
     {
       path: '/patients',
       name: 'patients',
-      component: PatientsListView,
+      component: () => import('../views/patients/PatientsListView.vue'),
     },
     {
       path: '/patients/new',
       name: 'patient-add',
-      component: PatientAddView,
+      component: () => import('../views/patients/PatientAddView.vue'),
     },
     {
       path: '/patients/:id',
       name: 'patient-details',
-      component: PatientDetailsView,
+      component: () => import('../views/patients/PatientDetailsView.vue'),
       props: true,
     },
     {
       path: '/patients/:id/edit',
       name: 'patient-edit',
-      component: PatientEditView,
+      component: () => import('../views/patients/PatientEditView.vue'),
       props: true,
     },
     {
       path: '/doctors',
       name: 'doctors',
-      component: DoctorListView,
+      component: () => import('../views/doctors/DoctorListView.vue'),
     },
     {
       path: '/doctors/new',
       name: 'doctor-add',
-      component: DoctorAddView,
+      component: () => import('../views/doctors/DoctorAddView.vue'),
     },
     {
       path: '/doctors/:id',
       name: 'doctor-details',
-      component: DoctorDetailsView,
+      component: () => import('../views/doctors/DoctorDetailsView.vue'),
       props: true,
     },
     {
       path: '/doctors/:id/edit',
       name: 'doctor-edit',
-      component: DoctorEditView,
+      component: () => import('../views/doctors/DoctorEditView.vue'),
+      props: true,
+    },
+    {
+      path: '/appointments',
+      name: 'appointments',
+      component: () => import('../views/appointments/AppointmentCalendarView.vue'),
+    },
+    {
+      path: '/appointments/list',
+      name: 'appointments-list',
+      component: () => import('../views/appointments/AppointmentListView.vue'),
+    },
+    {
+      path: '/appointments/new',
+      name: 'appointment-add',
+      component: () => import('../views/appointments/AppointmentAddView.vue'),
+    },
+    {
+      path: '/appointments/:id',
+      name: 'appointment-details',
+      component: () => import('../views/appointments/AppointmentDetailsView.vue'),
+      props: true,
+    },
+    {
+      path: '/appointments/:id/edit',
+      name: 'appointment-edit',
+      component: () => import('../views/appointments/AppointmentEditView.vue'),
       props: true,
     },
   ],

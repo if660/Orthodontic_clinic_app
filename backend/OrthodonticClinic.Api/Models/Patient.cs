@@ -14,6 +14,12 @@ namespace OrthodonticClinic.Api.Models
 
         public DateTime? BirthDate { get; set; }
 
+        public string? GuardianFullName { get; set; }
+
+        public string? GuardianPhone { get; set; }
+
+        public string? GuardianEmail { get; set; }
+
         public List<Appointment> Appointments { get; set; } = new();
     }
 }

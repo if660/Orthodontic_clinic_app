@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref, watch, watchEffect } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import AppIcon from '../../components/common/AppIcon.vue'
-import DoctorDeleteModal from '../../components/doctors/DoctorDeleteModal.vue'
-import DoctorTable from '../../components/doctors/DoctorTable.vue'
 import { deleteDoctor, getDoctors } from '../../services/doctorService'
 import type { Doctor } from '../../types/doctor'
 import { getDoctorFullName } from '../../types/doctor'
+import { usePersistedSearch } from '../../composables/usePersistedSearch'
+
+const DoctorDeleteModal = defineAsyncComponent(() => import('../../components/doctors/DoctorDeleteModal.vue'))
+const DoctorTable = defineAsyncComponent(() => import('../../components/doctors/DoctorTable.vue'))
 
 const router = useRouter()
 
@@ -15,7 +17,7 @@ const loading = ref(false)
 const deleting = ref(false)
 const error = ref('')
 const successMessage = ref('')
-const searchQuery = ref('')
+const { searchQuery } = usePersistedSearch('doctors-search-query')
 const selectedDoctor = ref<Doctor | null>(null)
 const isDeleteModalVisible = ref(false)
 
@@ -30,6 +32,13 @@ const filteredDoctors = computed(() => {
       doctor.lastName.toLowerCase().includes(query) ||
       doctor.specialization.toLowerCase().includes(query)
     )
+  })
+})
+
+const sortedDoctors = computed(() => {
+  return [...filteredDoctors.value].sort((a, b) => {
+    const nameCompare = a.lastName.localeCompare(b.lastName)
+    return nameCompare !== 0 ? nameCompare : a.firstName.localeCompare(b.firstName)
   })
 })
 
@@ -91,6 +100,14 @@ const confirmDelete = async () => {
 onMounted(() => {
   loadDoctors()
 })
+
+watch(searchQuery, () => {
+  successMessage.value = ''
+})
+
+watchEffect(() => {
+  document.title = `Klinika ortodontyczna - Lekarze (${filteredDoctors.value.length})`
+})
 </script>
 
 <template>
@@ -99,7 +116,7 @@ onMounted(() => {
       <div class="app-page-header__text">
         <h1 class="app-page-header__title">Lekarze</h1>
         <p class="app-page-header__subtitle">
-          Lista lekarzy pracujących w klinice ortodontycznej.
+          Lista lekarzy pracujących w klinice ortodontycznej. Wyświetlonych: {{ sortedDoctors.length }}.
         </p>
       </div>
 
@@ -119,6 +136,7 @@ onMounted(() => {
 
         <input
           v-model="searchQuery"
+          v-autofocus
           class="app-search__input"
           type="search"
           placeholder="Szukaj lekarza..."
@@ -141,7 +159,7 @@ onMounted(() => {
 
     <DoctorTable
       v-else
-      :doctors="filteredDoctors"
+      :doctors="sortedDoctors"
       empty-message="Brak lekarzy do wyświetlenia"
       @details="goToDetails"
       @edit="goToEdit"

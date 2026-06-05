@@ -106,6 +106,11 @@ namespace OrthodonticClinic.Api.Controllers
                 doctor.FirstName = updatedDoctor.FirstName;
                 doctor.LastName = updatedDoctor.LastName;
                 doctor.Specialization = updatedDoctor.Specialization;
+                doctor.LicenseNumber = updatedDoctor.LicenseNumber;
+                doctor.AvailableDays = updatedDoctor.AvailableDays;
+                doctor.AvailabilityStart = updatedDoctor.AvailabilityStart;
+                doctor.AvailabilityEnd = updatedDoctor.AvailabilityEnd;
+                doctor.ProfileNote = updatedDoctor.ProfileNote;
 
                 await _context.SaveChangesAsync();
 

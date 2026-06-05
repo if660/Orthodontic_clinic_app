@@ -154,6 +154,9 @@ namespace OrthodonticClinic.Api.Controllers
                 patient.Phone = updatedPatient.Phone;
                 patient.Email = updatedPatient.Email;
                 patient.BirthDate = updatedPatient.BirthDate;
+                patient.GuardianFullName = updatedPatient.GuardianFullName;
+                patient.GuardianPhone = updatedPatient.GuardianPhone;
+                patient.GuardianEmail = updatedPatient.GuardianEmail;
 
                 await _context.SaveChangesAsync();
 

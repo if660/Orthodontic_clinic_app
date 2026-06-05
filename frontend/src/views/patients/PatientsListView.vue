@@ -36,11 +36,30 @@
           </span>
           <input
             v-model="searchQuery"
+            v-autofocus
             class="app-search__input"
             type="search"
             placeholder="Szukaj pacjenta..."
             aria-label="Szukaj pacjenta"
           />
+        </div>
+
+        <div class="app-filter">
+          <label class="app-filter__label" for="age-filter">Grupa pacjenta</label>
+          <select id="age-filter" v-model="ageFilter" class="app-filter__select">
+            <option value="all">Wszyscy</option>
+            <option value="minor">Dzieci</option>
+            <option value="adult">Dorośli</option>
+          </select>
+        </div>
+
+        <div class="app-filter">
+          <label class="app-filter__label" for="visit-filter">Plan wizyty</label>
+          <select id="visit-filter" v-model="visitPlanFilter" class="app-filter__select">
+            <option value="all">Wszystko</option>
+            <option value="withUpcoming">Ma kolejną wizytę</option>
+            <option value="withoutUpcoming">Bez kolejnej wizyty</option>
+          </select>
         </div>
       </div>
 
@@ -49,57 +68,88 @@
         :empty-message="emptyTableMessage"
         @details="onDetails"
         @edit="onEdit"
-        @delete="onDeleteRequest"
+        @appointments="onAppointments"
       />
     </template>
 
-    <ConfirmDeleteModal
-      :visible="deleteModalVisible"
-      :patient-name="patientToDeleteName"
-      :deleting="deleting"
-      @confirm="confirmDelete"
-      @cancel="cancelDelete"
-    />
   </PageLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, defineAsyncComponent, onMounted, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPatients, deletePatient } from '../../services/patientService'
-import PatientTable from '../../components/patients/PatientTable.vue'
-import ConfirmDeleteModal from '../../components/patients/ConfirmDeleteModal.vue'
+import { getPatients } from '../../services/patientService'
+import { getAppointments } from '../../services/appointmentService'
 import PageLayout from '../../components/common/PageLayout.vue'
 import PageHeader from '../../components/common/PageHeader.vue'
 import AppAlert from '../../components/common/AppAlert.vue'
 import AppSpinner from '../../components/common/AppSpinner.vue'
 import AppIcon from '../../components/common/AppIcon.vue'
 import type { Patient, PatientFlashType } from '../../types/patient'
-import { getFlashMessage, getPatientFullName } from '../../types/patient'
+import type { Appointment } from '../../types/appointment'
+import {
+  getFlashMessage,
+  getPatientFullName,
+  isPatientMinorFromBirthDate,
+} from '../../types/patient'
 import { getApiErrorMessage } from '../../utils/apiError'
+import { usePersistedSearch } from '../../composables/usePersistedSearch'
+
+const PatientTable = defineAsyncComponent(() => import('../../components/patients/PatientTable.vue'))
 
 const router = useRouter()
 const route = useRoute()
 
 const patients = ref<Patient[]>([])
-const searchQuery = ref('')
+const appointments = ref<Appointment[]>([])
+const { searchQuery } = usePersistedSearch('patients-search-query')
+const ageFilter = ref<'all' | 'minor' | 'adult'>('all')
+const visitPlanFilter = ref<'all' | 'withUpcoming' | 'withoutUpcoming'>('all')
 const loading = ref(true)
 const error = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
 
-const patientToDelete = ref<Patient | null>(null)
-const deleteModalVisible = ref(false)
-const deleting = ref(false)
-
 const filteredPatients = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
-  if (!query) return patients.value
+  const now = new Date()
 
-  return patients.value.filter(
-    (patient) =>
-      patient.firstName.toLowerCase().includes(query) ||
-      patient.lastName.toLowerCase().includes(query),
+  const patientIdsWithUpcoming = new Set(
+    appointments.value
+      .filter((appointment) => new Date(appointment.appointmentDate) >= now)
+      .map((appointment) => appointment.patientId),
   )
+
+  if (!query && ageFilter.value === 'all' && visitPlanFilter.value === 'all') return patients.value
+
+  return patients.value
+    .filter((patient) => {
+      const matchesSearch =
+        patient.firstName.toLowerCase().includes(query) ||
+        patient.lastName.toLowerCase().includes(query) ||
+        patient.phone.toLowerCase().includes(query) ||
+        patient.email.toLowerCase().includes(query) ||
+        patient.guardianFullName.toLowerCase().includes(query)
+
+      const isMinor = isPatientMinorFromBirthDate(patient.birthDate)
+      const matchesAgeFilter =
+        ageFilter.value === 'all' ||
+        (ageFilter.value === 'minor' && isMinor) ||
+        (ageFilter.value === 'adult' && !isMinor)
+
+      const hasUpcoming = patientIdsWithUpcoming.has(patient.id)
+      const matchesVisitPlanFilter =
+        visitPlanFilter.value === 'all' ||
+        (visitPlanFilter.value === 'withUpcoming' && hasUpcoming) ||
+        (visitPlanFilter.value === 'withoutUpcoming' && !hasUpcoming)
+
+      return matchesSearch && matchesAgeFilter && matchesVisitPlanFilter
+    })
+    .sort((a, b) => {
+      const lastNameCompare = a.lastName.localeCompare(b.lastName)
+      return lastNameCompare !== 0
+        ? lastNameCompare
+        : a.firstName.localeCompare(b.firstName)
+    })
 })
 
 const emptyTableMessage = computed(() => {
@@ -113,8 +163,7 @@ const emptyTableMessage = computed(() => {
 })
 
 const patientToDeleteName = computed(() => {
-  if (!patientToDelete.value) return ''
-  return getPatientFullName(patientToDelete.value) || 'tego pacjenta'
+  return ''
 })
 
 const applyFlashFromQuery = () => {
@@ -130,11 +179,18 @@ const loadPatients = async () => {
   error.value = null
 
   try {
-    patients.value = await getPatients()
+    const [patientsData, appointmentsData] = await Promise.all([
+      getPatients(),
+      getAppointments(),
+    ])
+
+    patients.value = patientsData
+    appointments.value = appointmentsData
   } catch (err) {
     console.error('Error loading patients:', err)
     error.value = getApiErrorMessage(err, 'Nie udało się załadować listy pacjentów')
     patients.value = []
+    appointments.value = []
   } finally {
     loading.value = false
   }
@@ -152,38 +208,57 @@ const onEdit = (patient: Patient) => {
   router.push({ name: 'patient-edit', params: { id: patient.id } })
 }
 
-const onDeleteRequest = (patient: Patient) => {
-  patientToDelete.value = patient
-  deleteModalVisible.value = true
-}
-
-const cancelDelete = () => {
-  deleteModalVisible.value = false
-  patientToDelete.value = null
-}
-
-const confirmDelete = async () => {
-  if (!patientToDelete.value) return
-
-  deleting.value = true
-  error.value = null
-
-  try {
-    await deletePatient(patientToDelete.value.id)
-    cancelDelete()
-    successMessage.value = getFlashMessage('deleted')
-    await loadPatients()
-  } catch (err) {
-    console.error('Error deleting patient:', err)
-    error.value = getApiErrorMessage(err, 'Nie udało się usunąć pacjenta. Spróbuj ponownie.')
-    cancelDelete()
-  } finally {
-    deleting.value = false
-  }
+const onAppointments = (patient: Patient) => {
+  router.push({ name: 'appointments', query: { patientId: patient.id } })
 }
 
 onMounted(async () => {
   applyFlashFromQuery()
   await loadPatients()
 })
+
+watch(searchQuery, () => {
+  successMessage.value = null
+})
+
+watch(ageFilter, () => {
+  successMessage.value = null
+})
+
+watch(visitPlanFilter, () => {
+  successMessage.value = null
+})
+
+watchEffect(() => {
+  document.title = `Klinika ortodontyczna - Pacjenci (${filteredPatients.value.length})`
+})
 </script>
+
+<style scoped>
+.app-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-filter__label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.app-filter__select {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.7rem;
+  background: #fff;
+  font: inherit;
+}
+
+@media (max-width: 760px) {
+  .app-filter {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+</style>

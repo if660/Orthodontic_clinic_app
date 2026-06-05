@@ -1,14 +1,49 @@
 <script setup lang="ts">
+import { computed, onMounted, onUnmounted } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
+import { useIntervalFn, useNow } from '@vueuse/core'
+import { useClinicStatsStore } from './stores/clinicStats'
+
+const statsStore = useClinicStatsStore()
+const now = useNow({ interval: 1000 })
+
+const formattedTime = computed(() => {
+  return new Intl.DateTimeFormat('pl-PL', {
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(now.value)
+})
+
+const { pause, resume } = useIntervalFn(() => {
+  statsStore.fetchStats()
+}, 45000, { immediate: false })
+
+onMounted(async () => {
+  await statsStore.fetchStats()
+  resume()
+})
+
+onUnmounted(() => {
+  pause()
+})
 </script>
 
 <template>
   <div class="app-shell">
     <nav class="app-navbar">
-      <RouterLink to="/" class="app-navbar__brand">
-        <span class="app-navbar__logo">O</span>
-        <span>Orthodontic Clinic</span>
-      </RouterLink>
+      <div class="app-navbar__left">
+        <RouterLink to="/" class="app-navbar__brand">
+          <span class="app-navbar__logo">O</span>
+          <span>Orthodontic Clinic</span>
+        </RouterLink>
+
+        <div class="app-time-chip">
+          <span class="pulse-dot" aria-hidden="true" />
+          <span>{{ formattedTime }}</span>
+        </div>
+      </div>
 
       <div class="app-navbar__links">
         <RouterLink to="/" class="app-navbar__link">
@@ -18,15 +53,25 @@ import { RouterLink, RouterView } from 'vue-router'
 
         <RouterLink to="/patients" class="app-navbar__link">
           <span>Pacjenci</span>
+          <span class="app-navbar__badge">{{ statsStore.patientsCount }}</span>
         </RouterLink>
 
         <RouterLink to="/doctors" class="app-navbar__link">
           <span>Lekarze</span>
+          <span class="app-navbar__badge">{{ statsStore.doctorsCount }}</span>
+        </RouterLink>
+
+        <RouterLink to="/appointments" class="app-navbar__link">
+          <span>Kalendarz</span>
         </RouterLink>
       </div>
     </nav>
 
-    <RouterView />
+    <RouterView v-slot="{ Component, route }">
+      <Transition name="page-swoop" mode="out-in">
+        <component :is="Component" :key="route.fullPath" />
+      </Transition>
+    </RouterView>
   </div>
 </template>
 
@@ -48,6 +93,12 @@ import { RouterLink, RouterView } from 'vue-router'
   border-bottom: 1px solid var(--color-border);
   backdrop-filter: blur(14px);
   box-shadow: var(--shadow-sm);
+}
+
+.app-navbar__left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .app-navbar__brand {
@@ -82,6 +133,41 @@ import { RouterLink, RouterView } from 'vue-router'
   justify-content: flex-end;
 }
 
+.app-navbar__badge {
+  min-width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.24);
+  color: currentColor;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.app-time-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--color-border);
+  background: #f8fafc;
+  color: var(--color-text-muted);
+  border-radius: 999px;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.pulse-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #0ea5e9;
+  box-shadow: 0 0 0 rgba(14, 165, 233, 0.45);
+  animation: pulse 1.8s infinite;
+}
+
 .app-navbar__link {
   display: inline-flex;
   align-items: center;
@@ -110,11 +196,43 @@ import { RouterLink, RouterView } from 'vue-router'
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 }
 
+.page-swoop-enter-active,
+.page-swoop-leave-active {
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+
+.page-swoop-enter-from,
+.page-swoop-leave-to {
+  opacity: 0;
+  transform: translateY(10px) scale(0.995);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.45);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px rgba(14, 165, 233, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+  }
+}
+
 @media (max-width: 700px) {
   .app-navbar {
     align-items: flex-start;
     flex-direction: column;
     gap: 0.75rem;
+  }
+
+  .app-navbar__left {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .app-navbar__links {
@@ -130,6 +248,11 @@ import { RouterLink, RouterView } from 'vue-router'
 @media (max-width: 430px) {
   .app-navbar__brand span:last-child {
     display: none;
+  }
+
+  .app-time-chip {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.55rem;
   }
 
   .app-navbar__link span:last-child {

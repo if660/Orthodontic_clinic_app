@@ -16,8 +16,8 @@ namespace OrthodonticClinic.Api.Controllers
             _context = context;
         }
 
-        [HttpGet("List")]
-        public async Task<IActionResult> List()
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
@@ -28,13 +28,9 @@ namespace OrthodonticClinic.Api.Controllers
                     {
                         a.Id,
                         a.PatientId,
-                        PatientName = a.Patient != null
-                            ? a.Patient.FirstName + " " + a.Patient.LastName
-                            : null,
+                        patientName = a.Patient != null ? a.Patient.FirstName + " " + a.Patient.LastName : "",
                         a.DoctorId,
-                        DoctorName = a.Doctor != null
-                            ? a.Doctor.FirstName + " " + a.Doctor.LastName
-                            : null,
+                        doctorName = a.Doctor != null ? a.Doctor.FirstName + " " + a.Doctor.LastName : "",
                         a.AppointmentDate,
                         a.Status,
                         a.VisitType,
@@ -46,16 +42,12 @@ namespace OrthodonticClinic.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new
-                {
-                    message = "Wystąpił błąd podczas pobierania listy wizyt.",
-                    error = ex.Message
-                });
+                return StatusCode(500, new { message = "Błąd podczas pobierania wizyt.", error = ex.Message });
             }
         }
 
-        [HttpGet("Data/{id}")]
-        public async Task<IActionResult> Data(int id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
             try
             {
@@ -67,16 +59,9 @@ namespace OrthodonticClinic.Api.Controllers
                     {
                         a.Id,
                         a.PatientId,
-                        PatientName = a.Patient != null
-                            ? a.Patient.FirstName + " " + a.Patient.LastName
-                            : null,
-                        PatientPhone = a.Patient != null ? a.Patient.Phone : null,
-                        PatientEmail = a.Patient != null ? a.Patient.Email : null,
+                        patientName = a.Patient != null ? a.Patient.FirstName + " " + a.Patient.LastName : "",
                         a.DoctorId,
-                        DoctorName = a.Doctor != null
-                            ? a.Doctor.FirstName + " " + a.Doctor.LastName
-                            : null,
-                        DoctorSpecialization = a.Doctor != null ? a.Doctor.Specialization : null,
+                        doctorName = a.Doctor != null ? a.Doctor.FirstName + " " + a.Doctor.LastName : "",
                         a.AppointmentDate,
                         a.Status,
                         a.VisitType,
@@ -85,233 +70,97 @@ namespace OrthodonticClinic.Api.Controllers
                     .FirstOrDefaultAsync();
 
                 if (appointment == null)
-                {
-                    return NotFound(new
-                    {
-                        message = "Nie znaleziono wizyty o podanym ID."
-                    });
-                }
+                    return NotFound(new { message = "Wizyta nie istnieje." });
 
                 return Ok(appointment);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new
-                {
-                    message = "Wystąpił błąd podczas pobierania danych wizyty.",
-                    error = ex.Message
-                });
+                return StatusCode(500, new { message = "Błąd podczas pobierania wizyty.", error = ex.Message });
             }
         }
 
-        [HttpPost("Add")]
-        public async Task<IActionResult> Add(Appointment appointment)
+        [HttpPost]
+        public async Task<IActionResult> Create(Appointment appointment)
         {
             try
             {
-                if (appointment.PatientId <= 0)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Nie wybrano pacjenta."
-                    });
-                }
-
-                if (appointment.DoctorId <= 0)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Nie wybrano lekarza."
-                    });
-                }
-
-                if (appointment.AppointmentDate == default)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Nie podano daty wizyty."
-                    });
-                }
-
-                if (string.IsNullOrWhiteSpace(appointment.VisitType))
-                {
-                    return BadRequest(new
-                    {
-                        message = "Nie podano typu wizyty."
-                    });
-                }
-
-                var patientExists = await _context.Patients
-                    .AnyAsync(p => p.Id == appointment.PatientId);
-
-                if (!patientExists)
-                {
-                    return NotFound(new
-                    {
-                        message = "Nie znaleziono pacjenta o podanym ID."
-                    });
-                }
-
-                var doctorExists = await _context.Doctors
-                    .AnyAsync(d => d.Id == appointment.DoctorId);
-
-                if (!doctorExists)
-                {
-                    return NotFound(new
-                    {
-                        message = "Nie znaleziono lekarza o podanym ID."
-                    });
-                }
-
-                if (string.IsNullOrWhiteSpace(appointment.Status))
-                {
-                    appointment.Status = "Zaplanowana";
-                }
-
                 _context.Appointments.Add(appointment);
                 await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(Data), new { id = appointment.Id }, appointment);
+                return CreatedAtAction(nameof(GetById), new { id = appointment.Id }, appointment);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new
-                {
-                    message = "Wystąpił błąd podczas dodawania wizyty.",
-                    error = ex.Message
-                });
+                return StatusCode(500, new { message = "Błąd podczas dodawania wizyty.", error = ex.Message });
             }
         }
 
-        [HttpPut("Edit/{id}")]
-        public async Task<IActionResult> Edit(int id, Appointment updatedAppointment)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, Appointment updated)
         {
             try
             {
-                var appointment = await _context.Appointments
-                    .FirstOrDefaultAsync(a => a.Id == id);
-
+                var appointment = await _context.Appointments.FindAsync(id);
                 if (appointment == null)
-                {
-                    return NotFound(new
-                    {
-                        message = "Nie znaleziono wizyty o podanym ID."
-                    });
-                }
+                    return NotFound(new { message = "Wizyta nie istnieje." });
 
-                if (updatedAppointment.PatientId <= 0)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Nie wybrano pacjenta."
-                    });
-                }
-
-                if (updatedAppointment.DoctorId <= 0)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Nie wybrano lekarza."
-                    });
-                }
-
-                var patientExists = await _context.Patients
-                    .AnyAsync(p => p.Id == updatedAppointment.PatientId);
-
-                if (!patientExists)
-                {
-                    return NotFound(new
-                    {
-                        message = "Nie znaleziono pacjenta o podanym ID."
-                    });
-                }
-
-                var doctorExists = await _context.Doctors
-                    .AnyAsync(d => d.Id == updatedAppointment.DoctorId);
-
-                if (!doctorExists)
-                {
-                    return NotFound(new
-                    {
-                        message = "Nie znaleziono lekarza o podanym ID."
-                    });
-                }
-
-                if (updatedAppointment.AppointmentDate == default)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Nie podano daty wizyty."
-                    });
-                }
-
-                if (string.IsNullOrWhiteSpace(updatedAppointment.VisitType))
-                {
-                    return BadRequest(new
-                    {
-                        message = "Nie podano typu wizyty."
-                    });
-                }
-
-                appointment.PatientId = updatedAppointment.PatientId;
-                appointment.DoctorId = updatedAppointment.DoctorId;
-                appointment.AppointmentDate = updatedAppointment.AppointmentDate;
-                appointment.Status = string.IsNullOrWhiteSpace(updatedAppointment.Status)
-                    ? "Zaplanowana"
-                    : updatedAppointment.Status;
-                appointment.VisitType = updatedAppointment.VisitType;
-                appointment.Notes = updatedAppointment.Notes;
+                appointment.PatientId = updated.PatientId;
+                appointment.DoctorId = updated.DoctorId;
+                appointment.AppointmentDate = updated.AppointmentDate;
+                appointment.Status = updated.Status;
+                appointment.VisitType = updated.VisitType;
+                appointment.Notes = updated.Notes;
 
                 await _context.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    message = "Wizyta została zaktualizowana.",
-                    appointment
-                });
+                return Ok(appointment);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new
-                {
-                    message = "Wystąpił błąd podczas edycji wizyty.",
-                    error = ex.Message
-                });
+                return StatusCode(500, new { message = "Błąd podczas aktualizacji wizyty.", error = ex.Message });
             }
         }
 
-        [HttpDelete("Delete/{id}")]
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStatusDto dto)
+        {
+            try
+            {
+                var appointment = await _context.Appointments.FindAsync(id);
+                if (appointment == null)
+                    return NotFound(new { message = "Wizyta nie istnieje." });
+
+                appointment.Status = dto.Status;
+                await _context.SaveChangesAsync();
+                return Ok(new { appointment.Id, appointment.Status });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Błąd podczas aktualizacji statusu.", error = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                var appointment = await _context.Appointments
-                    .FirstOrDefaultAsync(a => a.Id == id);
-
+                var appointment = await _context.Appointments.FindAsync(id);
                 if (appointment == null)
-                {
-                    return NotFound(new
-                    {
-                        message = "Nie znaleziono wizyty o podanym ID."
-                    });
-                }
+                    return NotFound(new { message = "Wizyta nie istnieje." });
 
                 _context.Appointments.Remove(appointment);
                 await _context.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    message = "Wizyta została usunięta."
-                });
+                return Ok(new { message = "Wizyta została usunięta." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new
-                {
-                    message = "Wystąpił błąd podczas usuwania wizyty.",
-                    error = ex.Message
-                });
+                return StatusCode(500, new { message = "Błąd podczas usuwania wizyty.", error = ex.Message });
             }
         }
+    }
+
+    public class UpdateStatusDto
+    {
+        public string Status { get; set; } = string.Empty;
     }
 }

@@ -6,6 +6,7 @@
           <tr>
             <th>Imię</th>
             <th>Nazwisko</th>
+            <th>Status</th>
             <th>Telefon</th>
             <th>E-mail</th>
             <th class="actions-header">Akcje</th>
@@ -14,12 +15,23 @@
 
         <tbody>
           <tr v-if="patients.length === 0">
-            <td colspan="5" class="empty-state">{{ emptyMessage }}</td>
+            <td colspan="6" class="empty-state">{{ emptyMessage }}</td>
           </tr>
 
           <tr v-for="patient in patients" :key="patient.id">
             <td data-label="Imię">{{ patient.firstName || '—' }}</td>
             <td data-label="Nazwisko">{{ patient.lastName || '—' }}</td>
+            <td data-label="Status">
+              <div class="patient-meta">
+                <span
+                  class="age-badge"
+                  :class="isPatientMinorFromBirthDate(patient.birthDate) ? 'age-badge--minor' : 'age-badge--adult'"
+                >
+                  {{ getPatientCategoryLabel(patient) }}
+                </span>
+                <small class="age-value">{{ getAgeText(patient.birthDate) }}</small>
+              </div>
+            </td>
             <td data-label="Telefon">{{ patient.phone || '—' }}</td>
             <td data-label="E-mail">{{ patient.email || '—' }}</td>
 
@@ -44,12 +56,12 @@
               </button>
               <button
                 type="button"
-                class="action-btn delete-btn"
-                title="Usuń"
-                @click="emit('delete', patient)"
+                class="action-btn calendar-btn"
+                title="Kalendarz"
+                @click="emit('appointments', patient)"
               >
-                <AppIcon name="trash" size="md" />
-                <span class="btn-text">Usuń</span>
+                <AppIcon name="calendar" size="md" />
+                <span class="btn-text">Kalendarz</span>
               </button>
             </td>
           </tr>
@@ -67,6 +79,18 @@
         </div>
         <dl class="patient-card__body">
           <div>
+            <dt>Status</dt>
+            <dd>
+              <span
+                class="age-badge"
+                :class="isPatientMinorFromBirthDate(patient.birthDate) ? 'age-badge--minor' : 'age-badge--adult'"
+              >
+                {{ getPatientCategoryLabel(patient) }}
+              </span>
+              <small class="age-value">{{ getAgeText(patient.birthDate) }}</small>
+            </dd>
+          </div>
+          <div>
             <dt>Telefon</dt>
             <dd>{{ patient.phone || '—' }}</dd>
           </div>
@@ -82,8 +106,8 @@
           <button type="button" class="action-btn edit-btn" title="Edytuj" @click="emit('edit', patient)">
             <AppIcon name="pencil" size="md" />
           </button>
-          <button type="button" class="action-btn delete-btn" title="Usuń" @click="emit('delete', patient)">
-            <AppIcon name="trash" size="md" />
+          <button type="button" class="action-btn calendar-btn" title="Kalendarz" @click="emit('appointments', patient)">
+            <AppIcon name="calendar" size="md" />
           </button>
         </div>
       </article>
@@ -94,6 +118,11 @@
 <script setup lang="ts">
 import AppIcon from '../common/AppIcon.vue'
 import type { Patient } from '../../types/patient'
+import {
+  getPatientAge,
+  getPatientCategoryLabel,
+  isPatientMinorFromBirthDate,
+} from '../../types/patient'
 
 withDefaults(
   defineProps<{
@@ -108,8 +137,13 @@ withDefaults(
 const emit = defineEmits<{
   details: [patient: Patient]
   edit: [patient: Patient]
-  delete: [patient: Patient]
+  appointments: [patient: Patient]
 }>()
+
+const getAgeText = (birthDate?: string | null) => {
+  const age = getPatientAge(birthDate)
+  return age === null ? 'Wiek nieznany' : `${age} lat`
+}
 </script>
 
 <style scoped>
@@ -180,6 +214,37 @@ const emit = defineEmits<{
   flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: flex-end;
+}
+
+.patient-meta {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.age-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.12rem 0.55rem;
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.age-badge--minor {
+  background: rgba(14, 165, 233, 0.15);
+  color: #0369a1;
+}
+
+.age-badge--adult {
+  background: rgba(34, 197, 94, 0.16);
+  color: #166534;
+}
+
+.age-value {
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
 }
 
 .action-btn {
