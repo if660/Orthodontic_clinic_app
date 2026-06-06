@@ -255,7 +255,8 @@ static void SeedAuthUsers(AppDbContext dbContext, PasswordService passwordServic
         {
             Email = "klinika@example.com",
             PasswordHash = passwordService.Hash("klinika123"),
-            Role = "Clinic"
+            Role = "Clinic",
+            MustChangePassword = false
         });
     }
 
@@ -266,6 +267,7 @@ static void SeedAuthUsers(AppDbContext dbContext, PasswordService passwordServic
             Email = "pacjent@example.com",
             PasswordHash = passwordService.Hash("pacjent123"),
             Role = "Patient",
+            MustChangePassword = false,
             PatientId = patient.Id
         });
     }

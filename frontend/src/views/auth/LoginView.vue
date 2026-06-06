@@ -69,6 +69,11 @@ const handleSubmit = async () => {
 
   try {
     const session = await login(email.value, password.value)
+    if (session.mustChangePassword) {
+      router.push({ name: 'change-password' })
+      return
+    }
+
     router.push({ name: session.role === 'Patient' ? 'patient-portal' : 'dashboard' })
   } catch (err) {
     error.value = getApiErrorMessage(err, 'Nie udalo sie zalogowac.')

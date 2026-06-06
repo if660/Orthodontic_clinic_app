@@ -201,6 +201,55 @@
         </ul>
       </section>
 
+      <section class="app-details-section">
+        <h3 class="app-details-section__title">Konto pacjenta</h3>
+
+        <AppAlert
+          v-if="accountError"
+          :message="accountError"
+          variant="error"
+          @dismiss="accountError = null"
+        />
+
+        <div v-if="accountLoading" class="app-detail-item__value">Sprawdzanie konta...</div>
+
+        <div v-else class="patient-account-box">
+          <template v-if="patientAccount?.hasAccount">
+            <p class="app-detail-item__value">
+              Konto istnieje: <strong>{{ patientAccount.email }}</strong>
+            </p>
+            <p v-if="patientAccount.mustChangePassword" class="patient-account-box__warning">
+              Pacjent musi zmienic haslo przy nastepnym logowaniu.
+            </p>
+          </template>
+
+          <template v-else>
+            <p class="app-detail-item__value">
+              Pacjent nie ma jeszcze konta logowania do panelu pacjenta.
+            </p>
+            <label class="patient-account-field">
+              <span>Email do logowania</span>
+              <input v-model.trim="accountEmail" type="email" placeholder="pacjent@example.com" />
+            </label>
+            <button
+              type="button"
+              class="app-btn app-btn--primary app-btn--sm"
+              :disabled="creatingAccount || !accountEmail"
+              @click="createAccount"
+            >
+              {{ creatingAccount ? 'Tworzenie...' : 'Utworz konto pacjenta' }}
+            </button>
+          </template>
+
+          <div v-if="createdAccount" class="temporary-password-box">
+            <span>Dane startowe pacjenta</span>
+            <strong>{{ createdAccount.email }}</strong>
+            <code>{{ createdAccount.temporaryPassword }}</code>
+            <p>Przekaz haslo pacjentowi. Po pierwszym logowaniu system wymusi zmiane hasla.</p>
+          </div>
+        </div>
+      </section>
+
       <section class="app-details-section app-details-section--danger">
         <h3 class="app-details-section__title">Strefa zagrożenia</h3>
         <p class="app-detail-item__value">Operacje na koncie pacjenta, które nie mogą być cofnięte.</p>
@@ -248,6 +297,12 @@ import AppIcon from '../../components/common/AppIcon.vue'
 import { getPatientById, deletePatient } from '../../services/patientService'
 import { getAppointments, updateAppointmentStatus } from '../../services/appointmentService'
 import { getPatientDocuments, uploadDocument, downloadDocument, deleteDocument } from '../../services/documentService'
+import {
+  createPatientAccount,
+  getPatientAccountStatus,
+  type CreatedPatientAccount,
+  type PatientAccountStatus,
+} from '../../services/authService'
 import type { Patient } from '../../types/patient'
 import { formatBirthDate, getPatientFullName, getFlashMessage } from '../../types/patient'
 import type { Appointment, AppointmentStatus } from '../../types/appointment'
@@ -283,6 +338,42 @@ const fileInputRef = ref<HTMLInputElement | null>(null)
 const pendingFile = ref<File | null>(null)
 const pendingDescription = ref('')
 const docDescriptionPending = ref(false)
+const patientAccount = ref<PatientAccountStatus | null>(null)
+const createdAccount = ref<CreatedPatientAccount | null>(null)
+const accountEmail = ref('')
+const accountLoading = ref(false)
+const creatingAccount = ref(false)
+const accountError = ref<string | null>(null)
+
+const loadPatientAccount = async () => {
+  accountLoading.value = true
+  accountError.value = null
+  try {
+    patientAccount.value = await getPatientAccountStatus(patientId)
+  } catch (err) {
+    accountError.value = getApiErrorMessage(err, 'Nie udalo sie sprawdzic konta pacjenta.')
+  } finally {
+    accountLoading.value = false
+  }
+}
+
+const createAccount = async () => {
+  creatingAccount.value = true
+  accountError.value = null
+  createdAccount.value = null
+  try {
+    createdAccount.value = await createPatientAccount(patientId, accountEmail.value)
+    patientAccount.value = {
+      hasAccount: true,
+      email: createdAccount.value.email,
+      mustChangePassword: createdAccount.value.mustChangePassword,
+    }
+  } catch (err) {
+    accountError.value = getApiErrorMessage(err, 'Nie udalo sie utworzyc konta pacjenta.')
+  } finally {
+    creatingAccount.value = false
+  }
+}
 
 const loadDocuments = async () => {
   docsLoading.value = true
@@ -465,9 +556,10 @@ onMounted(async () => {
     ])
 
     patient.value = patientData
+    accountEmail.value = patientData.email ?? ''
     appointments.value = appointmentData
     draftStatuses.value = Object.fromEntries(appointmentData.map((appointment) => [appointment.id, appointment.status]))
-    await loadDocuments()
+    await Promise.all([loadDocuments(), loadPatientAccount()])
   } catch (err) {
     console.error('Error loading patient:', err)
     error.value = getApiErrorMessage(err, 'Nie udało się załadować szczegółów pacjenta')
@@ -584,6 +676,72 @@ onMounted(async () => {
   border-left: 4px solid #dc2626;
   padding: 1rem;
   border-radius: var(--radius-md);
+}
+
+.patient-account-box {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.patient-account-box__warning {
+  margin: 0;
+  color: #92400e;
+  font-weight: 700;
+}
+
+.patient-account-field {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 360px;
+}
+
+.patient-account-field span {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.patient-account-field input {
+  min-height: 2.4rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.65rem;
+  font: inherit;
+}
+
+.temporary-password-box {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 420px;
+  padding: 0.85rem;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-md);
+  background: #eff6ff;
+}
+
+.temporary-password-box span {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.temporary-password-box code {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: #1d4ed8;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.temporary-password-box p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
 }
 
 .modal-backdrop {

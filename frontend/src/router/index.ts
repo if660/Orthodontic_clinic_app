@@ -15,6 +15,11 @@ const router = createRouter({
       component: () => import('../views/auth/LoginView.vue'),
     },
     {
+      path: '/change-password',
+      name: 'change-password',
+      component: () => import('../views/auth/ChangePasswordView.vue'),
+    },
+    {
       path: '/patient',
       name: 'patient-portal',
       component: () => import('../views/patient/PatientPortalView.vue'),
@@ -102,6 +107,7 @@ router.beforeEach((to) => {
   const session = authSession.value
 
   if (to.name === 'login') {
+    if (session?.mustChangePassword) return { name: 'change-password' }
     if (session?.role === 'Patient') return { name: 'patient-portal' }
     if (session?.role === 'Clinic') return { name: 'dashboard' }
     return true
@@ -111,7 +117,15 @@ router.beforeEach((to) => {
     return { name: 'login' }
   }
 
-  if (session.role === 'Patient' && to.name !== 'patient-portal') {
+  if (session.mustChangePassword && to.name !== 'change-password') {
+    return { name: 'change-password' }
+  }
+
+  if (!session.mustChangePassword && to.name === 'change-password') {
+    return { name: session.role === 'Patient' ? 'patient-portal' : 'dashboard' }
+  }
+
+  if (session.role === 'Patient' && to.name !== 'patient-portal' && to.name !== 'change-password') {
     return { name: 'patient-portal' }
   }
 

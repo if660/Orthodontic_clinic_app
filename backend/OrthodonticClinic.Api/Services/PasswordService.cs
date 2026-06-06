@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 
 namespace OrthodonticClinic.Api.Services
 {
@@ -7,6 +8,10 @@ namespace OrthodonticClinic.Api.Services
         private const int SaltSize = 16;
         private const int KeySize = 32;
         private const int Iterations = 100_000;
+        private const string Lowercase = "abcdefghijkmnopqrstuvwxyz";
+        private const string Uppercase = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        private const string Digits = "23456789";
+        private const string Special = "!@#$%^&*?";
 
         public string Hash(string password)
         {
@@ -29,6 +34,42 @@ namespace OrthodonticClinic.Api.Services
             var actualKey = Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, HashAlgorithmName.SHA256, expectedKey.Length);
 
             return CryptographicOperations.FixedTimeEquals(actualKey, expectedKey);
+        }
+
+        public string GenerateTemporaryPassword(int length = 14)
+        {
+            if (length < 12) length = 12;
+
+            var chars = new List<char>
+            {
+                GetRandomChar(Lowercase),
+                GetRandomChar(Uppercase),
+                GetRandomChar(Digits),
+                GetRandomChar(Special)
+            };
+
+            var allChars = Lowercase + Uppercase + Digits + Special;
+            while (chars.Count < length)
+            {
+                chars.Add(GetRandomChar(allChars));
+            }
+
+            return new string(chars.OrderBy(_ => RandomNumberGenerator.GetInt32(int.MaxValue)).ToArray());
+        }
+
+        public bool IsStrongPassword(string password)
+        {
+            return !string.IsNullOrWhiteSpace(password) &&
+                   password.Length >= 8 &&
+                   Regex.IsMatch(password, "[a-z]") &&
+                   Regex.IsMatch(password, "[A-Z]") &&
+                   Regex.IsMatch(password, "[0-9]") &&
+                   Regex.IsMatch(password, "[^a-zA-Z0-9]");
+        }
+
+        private static char GetRandomChar(string chars)
+        {
+            return chars[RandomNumberGenerator.GetInt32(chars.Length)];
         }
     }
 }

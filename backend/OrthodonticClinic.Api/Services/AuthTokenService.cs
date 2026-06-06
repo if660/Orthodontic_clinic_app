@@ -31,6 +31,7 @@ namespace OrthodonticClinic.Api.Services
                 [ClaimTypes.Email] = user.Email,
                 [ClaimTypes.Role] = user.Role,
                 ["patientId"] = user.PatientId,
+                ["mustChangePassword"] = user.MustChangePassword,
                 ["exp"] = now.AddHours(8).ToUnixTimeSeconds(),
                 ["iat"] = now.ToUnixTimeSeconds()
             };

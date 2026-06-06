@@ -10,6 +10,7 @@ export interface AuthSession {
   token: string
   role: AuthRole
   email: string
+  mustChangePassword: boolean
   patientId?: number | null
   patientName?: string | null
 }
@@ -18,8 +19,21 @@ interface LoginResponse {
   token: string
   role: AuthRole
   email: string
+  mustChangePassword?: boolean
   patientId?: number | null
   patientName?: string | null
+}
+
+export interface PatientAccountStatus {
+  hasAccount: boolean
+  email?: string | null
+  mustChangePassword: boolean
+}
+
+export interface CreatedPatientAccount {
+  email: string
+  temporaryPassword: string
+  mustChangePassword: boolean
 }
 
 export const authSession = ref<AuthSession | null>(readStoredSession())
@@ -53,6 +67,34 @@ export const loadCurrentUser = async (): Promise<AuthSession | null> => {
   return session
 }
 
+export const getPatientAccountStatus = async (patientId: number): Promise<PatientAccountStatus> => {
+  const response = await axios.get<PatientAccountStatus>(`${API_URL}/patient/${patientId}/account`)
+  return response.data
+}
+
+export const createPatientAccount = async (
+  patientId: number,
+  email: string,
+): Promise<CreatedPatientAccount> => {
+  const response = await axios.post<CreatedPatientAccount>(`${API_URL}/patient/${patientId}/account`, { email })
+  return response.data
+}
+
+export const changePassword = async (
+  currentPassword: string,
+  newPassword: string,
+  confirmPassword: string,
+): Promise<AuthSession> => {
+  const response = await axios.post<LoginResponse>(`${API_URL}/change-password`, {
+    currentPassword,
+    newPassword,
+    confirmPassword,
+  })
+  const session = normalizeSession(response.data)
+  setSession(session)
+  return session
+}
+
 export const logout = () => {
   authSession.value = null
   localStorage.removeItem(STORAGE_KEY)
@@ -80,6 +122,7 @@ function normalizeSession(raw: Partial<AuthSession> & { token?: string; role?: s
     token: raw.token ?? '',
     role: raw.role === 'Patient' ? 'Patient' : 'Clinic',
     email: raw.email ?? '',
+    mustChangePassword: raw.mustChangePassword ?? false,
     patientId: raw.patientId ?? null,
     patientName: raw.patientName ?? null,
   }

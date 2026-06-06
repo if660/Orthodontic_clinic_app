@@ -10,6 +10,8 @@ namespace OrthodonticClinic.Api.Models
 
         public string Role { get; set; } = string.Empty;
 
+        public bool MustChangePassword { get; set; }
+
         public int? PatientId { get; set; }
 
         public Patient? Patient { get; set; }
