@@ -23,6 +23,18 @@ namespace OrthodonticClinic.Api.Controllers
 
         private const long MaxFileSizeBytes = 10 * 1024 * 1024; // 10 MB
 
+        public class UploadPatientDocumentRequest
+        {
+            [FromForm]
+            public int PatientId { get; set; }
+
+            [FromForm(Name = "file")]
+            public IFormFile File { get; set; } = null!;
+
+            [FromForm]
+            public string? Description { get; set; }
+        }
+
         public PatientDocumentController(AppDbContext context)
         {
             _context = context;
@@ -75,14 +87,16 @@ namespace OrthodonticClinic.Api.Controllers
         }
 
         [HttpPost("upload")]
+        [Consumes("multipart/form-data")]
         [RequestSizeLimit(10 * 1024 * 1024)]
-        public async Task<IActionResult> Upload(
-            [FromForm] int patientId,
-            [FromForm] IFormFile file,
-            [FromForm] string? description)
+        public async Task<IActionResult> Upload([FromForm] UploadPatientDocumentRequest request)
         {
             try
             {
+                var patientId = request.PatientId;
+                var file = request.File;
+                var description = request.Description;
+
                 if (file == null || file.Length == 0)
                     return BadRequest(new { message = "Nie przesłano pliku." });
 
