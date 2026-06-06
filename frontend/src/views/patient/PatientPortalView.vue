@@ -23,7 +23,7 @@
               <select v-model.number="form.doctorId" required>
                 <option :value="0" disabled>Wybierz lekarza</option>
                 <option v-for="doctor in doctors" :key="doctor.id" :value="doctor.id">
-                  {{ doctor.firstName }} {{ doctor.lastName }} - {{ doctor.specialization }}
+                  {{ getDoctorOptionLabel(doctor, form.appointmentDate) }}
                 </option>
               </select>
             </label>
@@ -32,6 +32,15 @@
               <span>Data i godzina</span>
               <input v-model="form.appointmentDate" type="datetime-local" required />
             </label>
+
+            <p
+              v-if="selectedDoctor && form.appointmentDate && selectedDoctorAvailability"
+              class="doctor-availability"
+              :class="selectedDoctorAvailability.available ? 'doctor-availability--ok' : 'doctor-availability--bad'"
+            >
+              {{ selectedDoctorAvailability.available ? '✓' : '✕' }}
+              {{ selectedDoctorAvailability.message }}
+            </p>
 
             <label class="patient-field">
               <span>Typ wizyty</span>
@@ -129,6 +138,11 @@ import type { Appointment, AppointmentFormPayload } from '../../types/appointmen
 import { formatAppointmentDate, VISIT_TYPES } from '../../types/appointment'
 import type { Doctor } from '../../types/doctor'
 import { getApiErrorMessage } from '../../utils/apiError'
+import {
+  getDoctorAvailability,
+  getDoctorOptionLabel,
+  isDoctorAvailable,
+} from '../../utils/doctorAvailability'
 
 const appointments = ref<Appointment[]>([])
 const doctors = ref<Doctor[]>([])
@@ -164,8 +178,24 @@ const visiblePatientAppointments = computed(() => {
   return patientAppointments.value.filter((appointment) => appointment.status !== 'Anulowana')
 })
 
+const selectedDoctor = computed(() =>
+  doctors.value.find((doctor) => doctor.id === form.value.doctorId) ?? null,
+)
+
+const selectedDoctorAvailability = computed(() => {
+  if (!selectedDoctor.value || !form.value.appointmentDate) return null
+  return getDoctorAvailability(selectedDoctor.value, form.value.appointmentDate)
+})
+
 const canSubmit = computed(() => {
-  return Boolean(form.value.patientId && form.value.doctorId && form.value.appointmentDate && form.value.visitType)
+  return Boolean(
+    form.value.patientId &&
+      form.value.doctorId &&
+      form.value.appointmentDate &&
+      form.value.visitType &&
+      selectedDoctor.value &&
+      isDoctorAvailable(selectedDoctor.value, form.value.appointmentDate),
+  )
 })
 
 const loadData = async () => {
@@ -184,7 +214,12 @@ const loadData = async () => {
 }
 
 const handleSubmit = async () => {
-  if (!canSubmit.value) return
+  if (!canSubmit.value) {
+    if (selectedDoctor.value && form.value.appointmentDate && !isDoctorAvailable(selectedDoctor.value, form.value.appointmentDate)) {
+      error.value = selectedDoctorAvailability.value?.message ?? 'Wybrany lekarz nie jest dostępny w podanym terminie.'
+    }
+    return
+  }
 
   submitting.value = true
   error.value = null
@@ -319,6 +354,27 @@ onMounted(loadData)
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.doctor-availability {
+  margin: -0.25rem 0 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.doctor-availability--ok {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.doctor-availability--bad {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
 }
 
 .patient-appointments {

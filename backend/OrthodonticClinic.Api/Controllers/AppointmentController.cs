@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrthodonticClinic.Api.Data;
 using OrthodonticClinic.Api.Models;
+using OrthodonticClinic.Api.Services;
 
 namespace OrthodonticClinic.Api.Controllers
 {
@@ -85,6 +86,13 @@ namespace OrthodonticClinic.Api.Controllers
         {
             try
             {
+                var doctor = await _context.Doctors.FindAsync(appointment.DoctorId);
+                if (doctor == null)
+                    return BadRequest(new { message = "Wybrany lekarz nie istnieje." });
+
+                if (!DoctorAvailabilityService.IsAvailable(doctor, appointment.AppointmentDate, out var reason))
+                    return BadRequest(new { message = reason });
+
                 _context.Appointments.Add(appointment);
                 await _context.SaveChangesAsync();
                 return CreatedAtAction(nameof(GetById), new { id = appointment.Id }, appointment);
@@ -103,6 +111,13 @@ namespace OrthodonticClinic.Api.Controllers
                 var appointment = await _context.Appointments.FindAsync(id);
                 if (appointment == null)
                     return NotFound(new { message = "Wizyta nie istnieje." });
+
+                var doctor = await _context.Doctors.FindAsync(updated.DoctorId);
+                if (doctor == null)
+                    return BadRequest(new { message = "Wybrany lekarz nie istnieje." });
+
+                if (!DoctorAvailabilityService.IsAvailable(doctor, updated.AppointmentDate, out var reason))
+                    return BadRequest(new { message = reason });
 
                 appointment.PatientId = updated.PatientId;
                 appointment.DoctorId = updated.DoctorId;
