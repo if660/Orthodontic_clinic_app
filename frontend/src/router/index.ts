@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { authSession } from '../services/authService'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,6 +8,16 @@ const router = createRouter({
       path: '/',
       name: 'dashboard',
       component: () => import('../views/dashboard/DashboardView.vue'),
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/auth/LoginView.vue'),
+    },
+    {
+      path: '/patient',
+      name: 'patient-portal',
+      component: () => import('../views/patient/PatientPortalView.vue'),
     },
     {
       path: '/patients',
@@ -79,7 +90,36 @@ const router = createRouter({
       component: () => import('../views/appointments/AppointmentEditView.vue'),
       props: true,
     },
+    {
+      path: '/reports',
+      name: 'reports',
+      component: () => import('../views/reports/ReportsView.vue'),
+    },
   ],
+})
+
+router.beforeEach((to) => {
+  const session = authSession.value
+
+  if (to.name === 'login') {
+    if (session?.role === 'Patient') return { name: 'patient-portal' }
+    if (session?.role === 'Clinic') return { name: 'dashboard' }
+    return true
+  }
+
+  if (!session) {
+    return { name: 'login' }
+  }
+
+  if (session.role === 'Patient' && to.name !== 'patient-portal') {
+    return { name: 'patient-portal' }
+  }
+
+  if (session.role === 'Clinic' && to.name === 'patient-portal') {
+    return { name: 'dashboard' }
+  }
+
+  return true
 })
 
 export default router

@@ -2,11 +2,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OrthodonticClinic.Api.Data;
 using OrthodonticClinic.Api.Models;
+using OrthodonticClinic.Api.Services;
 using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<PasswordService>();
+builder.Services.AddSingleton<AuthTokenService>();
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
@@ -42,6 +48,7 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
     SeedInitialData(dbContext);
+    SeedAuthUsers(dbContext, scope.ServiceProvider.GetRequiredService<PasswordService>());
 }
 
 if (app.Environment.IsDevelopment())
@@ -52,6 +59,22 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowVueApp");
+
+app.Use(async (context, next) =>
+{
+    var authorization = context.Request.Headers.Authorization.ToString();
+    if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+    {
+        var tokenService = context.RequestServices.GetRequiredService<AuthTokenService>();
+        var principal = tokenService.ValidateToken(authorization["Bearer ".Length..].Trim());
+        if (principal != null)
+        {
+            context.User = principal;
+        }
+    }
+
+    await next();
+});
 
 app.UseAuthorization();
 
@@ -219,4 +242,33 @@ static void SeedInitialData(AppDbContext dbContext)
 
         dbContext.SaveChanges();
     }
+}
+
+static void SeedAuthUsers(AppDbContext dbContext, PasswordService passwordService)
+{
+    var patient = dbContext.Patients.FirstOrDefault(p => p.Email == "anna.kowalska@example.com")
+        ?? dbContext.Patients.OrderBy(p => p.Id).FirstOrDefault();
+
+    if (!dbContext.AppUsers.Any(u => u.Email == "klinika@example.com"))
+    {
+        dbContext.AppUsers.Add(new AppUser
+        {
+            Email = "klinika@example.com",
+            PasswordHash = passwordService.Hash("klinika123"),
+            Role = "Clinic"
+        });
+    }
+
+    if (patient != null && !dbContext.AppUsers.Any(u => u.Email == "pacjent@example.com"))
+    {
+        dbContext.AppUsers.Add(new AppUser
+        {
+            Email = "pacjent@example.com",
+            PasswordHash = passwordService.Hash("pacjent123"),
+            Role = "Patient",
+            PatientId = patient.Id
+        });
+    }
+
+    dbContext.SaveChanges();
 }

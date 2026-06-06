@@ -70,15 +70,23 @@ function formatTime(iso: string): string {
 
 const todayIso = computed(() => toIsoDate(new Date()))
 
+const isCancelledAppointment = (appointment: Appointment) => {
+  return appointment.status === 'Anulowana' || appointment.status.includes('Odwol')
+}
+
+const activeAppointments = computed(() =>
+  appointments.value.filter((appointment) => !isCancelledAppointment(appointment)),
+)
+
 const filteredAppointments = computed(() => {
-  if (filterDoctorId.value === 'all') return appointments.value
-  return appointments.value.filter((a) => a.doctorId === filterDoctorId.value)
+  if (filterDoctorId.value === 'all') return activeAppointments.value
+  return activeAppointments.value.filter((a) => a.doctorId === filterDoctorId.value)
 })
 
 const doctorColorMap = computed(() => {
   const map: Record<number, string> = {}
   doctors.value.forEach((d, i) => {
-    map[d.id] = DOCTOR_PALETTE[i % DOCTOR_PALETTE.length]
+    map[d.id] = DOCTOR_PALETTE[i % DOCTOR_PALETTE.length] ?? '#2563eb'
   })
   return map
 })
@@ -108,7 +116,7 @@ const getCellAppointments = (isoDate: string): Appointment[] => {
 }
 
 // ---- Month view ----
-const weekdayLabels = ['Pn', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd']
+const weekdayLabels = ['Pn', 'Wt', 'Sr', 'Czw', 'Pt', 'Sob', 'Nd']
 
 const monthFirstDay = computed(() => {
   const d = new Date(currentDate.value)
@@ -217,11 +225,12 @@ const headerLabel = computed(() => {
   }
   const first = weekDays.value[0]
   const last = weekDays.value[6]
+  if (!first || !last) return ''
   const d1 = new Date(`${first.isoDate}T00:00:00`)
   const d2 = new Date(`${last.isoDate}T00:00:00`)
   const fmt1 = d1.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })
   const fmt2 = d2.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric' })
-  return `${fmt1} – ${fmt2}`
+  return `${fmt1} - ${fmt2}`
 })
 
 const navigate = (direction: number) => {
@@ -293,7 +302,7 @@ const savePopupStatus = async () => {
     flashMessage.value = 'Status wizyty zaktualizowany.'
     setTimeout(() => { flashMessage.value = '' }, 3000)
   } catch (err) {
-    error.value = getApiErrorMessage(err, 'Nie udało się zmienić statusu.')
+    error.value = getApiErrorMessage(err, 'Nie udalo sie zmienic statusu.')
   } finally {
     popupUpdatingStatus.value = false
   }
@@ -306,10 +315,10 @@ const confirmDeleteAppt = async () => {
     await deleteAppointment(popupAppt.value.id)
     appointments.value = appointments.value.filter((a) => a.id !== popupAppt.value!.id)
     closePopup()
-    flashMessage.value = 'Wizyta została usunięta.'
+    flashMessage.value = 'Wizyta zostala usunieta.'
     setTimeout(() => { flashMessage.value = '' }, 3000)
   } catch (err) {
-    error.value = getApiErrorMessage(err, 'Nie udało się usunąć wizyty.')
+    error.value = getApiErrorMessage(err, 'Nie udalo sie usunac wizyty.')
   } finally {
     popupDeleting.value = false
   }
@@ -317,23 +326,21 @@ const confirmDeleteAppt = async () => {
 
 // ---- Status classes ----
 const statusPillClass = (status: string) => {
-  switch (status) {
-    case 'Zakończona': return 'cal-pill--done'
-    case 'Potwierdzona': return 'cal-pill--confirmed'
-    case 'Anulowana': return 'cal-pill--cancelled'
-    case 'Nieobecność': return 'cal-pill--absent'
-    default: return 'cal-pill--planned'
-  }
+  if (status === 'Do potwierdzenia') return 'cal-pill--pending'
+  if (status === 'Potwierdzona') return 'cal-pill--confirmed'
+  if (status === 'Anulowana') return 'cal-pill--cancelled'
+  if (status.includes('Zako')) return 'cal-pill--done'
+  if (status.includes('Nieobec')) return 'cal-pill--absent'
+  return 'cal-pill--planned'
 }
 
 const statusChipClass = (status: string) => {
-  switch (status) {
-    case 'Zakończona': return 'chip--success'
-    case 'Potwierdzona': return 'chip--info'
-    case 'Anulowana': return 'chip--danger'
-    case 'Nieobecność': return 'chip--warning'
-    default: return 'chip--default'
-  }
+  if (status === 'Do potwierdzenia') return 'chip--danger'
+  if (status === 'Potwierdzona') return 'chip--info'
+  if (status === 'Anulowana') return 'chip--danger'
+  if (status.includes('Zako')) return 'chip--success'
+  if (status.includes('Nieobec')) return 'chip--warning'
+  return 'chip--default'
 }
 
 watch(viewMode, () => {
@@ -347,7 +354,7 @@ onMounted(async () => {
     appointments.value = appts
     doctors.value = docs
   } catch (err) {
-    error.value = getApiErrorMessage(err, 'Nie udało się załadować danych kalendarza.')
+    error.value = getApiErrorMessage(err, 'Nie udalo sie zaladowac danych kalendarza.')
   } finally {
     loading.value = false
   }
@@ -356,7 +363,7 @@ onMounted(async () => {
 
 <template>
   <PageLayout>
-    <PageHeader title="Kalendarz wizyt" subtitle="Planowanie i zarządzanie wizytami kliniki">
+    <PageHeader title="Kalendarz wizyt" subtitle="Planowanie i zarzadzanie wizytami kliniki">
       <template #actions>
         <RouterLink to="/appointments/list" class="app-btn app-btn--ghost app-btn--sm">
           <AppIcon name="list" />
@@ -366,7 +373,7 @@ onMounted(async () => {
           :to="{ name: 'appointment-add', query: { date: selectedDate } }"
           class="app-btn app-btn--primary app-btn--sm"
         >
-          + Umów wizytę
+          + Umow wizyte
         </RouterLink>
       </template>
     </PageHeader>
@@ -374,18 +381,18 @@ onMounted(async () => {
     <AppAlert v-if="flashMessage" :message="flashMessage" variant="success" @dismiss="flashMessage = ''" />
     <AppAlert v-if="error" :message="error" variant="error" @dismiss="error = ''" />
 
-    <AppSpinner v-if="loading" label="Ładowanie kalendarza..." />
+    <AppSpinner v-if="loading" label="Ladowanie kalendarza..." />
 
     <template v-else>
       <div class="cal-toolbar">
         <div class="cal-nav">
           <button class="app-btn app-btn--ghost app-btn--sm cal-nav-btn" @click="navigate(-1)">
-            ←
+            <-
           </button>
-          <button class="app-btn app-btn--ghost app-btn--sm" @click="goToday">Dziś</button>
+          <button class="app-btn app-btn--ghost app-btn--sm" @click="goToday">Dzis</button>
           <h2 class="cal-nav__label">{{ headerLabel }}</h2>
           <button class="app-btn app-btn--ghost app-btn--sm cal-nav-btn" @click="navigate(1)">
-            →
+            ->
           </button>
         </div>
 
@@ -396,14 +403,14 @@ onMounted(async () => {
               :class="{ 'view-toggle__btn--active': viewMode === 'month' }"
               @click="viewMode = 'month'"
             >
-              Miesiąc
+              Miesiac
             </button>
             <button
               class="view-toggle__btn"
               :class="{ 'view-toggle__btn--active': viewMode === 'week' }"
               @click="viewMode = 'week'"
             >
-              Tydzień
+              Tydzien
             </button>
           </div>
 
@@ -442,7 +449,7 @@ onMounted(async () => {
                   <button
                     v-if="cell.inMonth"
                     class="cal-cell__add"
-                    title="Umów wizytę na ten dzień"
+                    title="Umow wizyte na ten dzien"
                     @click.stop="quickAddForDate(cell.isoDate)"
                   >
                     +
@@ -455,7 +462,7 @@ onMounted(async () => {
                     :key="appt.id"
                     class="cal-pill"
                     :class="statusPillClass(appt.status)"
-                    :title="`${formatTime(appt.appointmentDate)} – ${appt.patientName} (${appt.visitType})`"
+                    :title="`${formatTime(appt.appointmentDate)} - ${appt.patientName} (${appt.visitType})`"
                     @click.stop="openAppointmentPopup(appt)"
                   >
                     <span class="cal-pill__dot" :style="{ background: getDoctorColor(appt.doctorId) }" />
@@ -467,7 +474,7 @@ onMounted(async () => {
                     class="cal-pill cal-pill--more"
                     @click.stop="selectDay(cell.isoDate)"
                   >
-                    +{{ getCellAppointments(cell.isoDate).length - 3 }} więcej
+                    +{{ getCellAppointments(cell.isoDate).length - 3 }} wiecej
                   </button>
                 </div>
               </div>
@@ -548,14 +555,14 @@ onMounted(async () => {
               :to="{ name: 'appointment-add', query: { date: selectedDate } }"
               class="app-btn app-btn--primary app-btn--sm"
             >
-              + Umów
+              + Umow
             </RouterLink>
           </div>
 
           <div v-if="selectedDayAppointments.length === 0" class="side-panel__empty">
-            <span class="side-panel__empty-icon">📅</span>
+            <span class="side-panel__empty-icon">[]</span>
             <p>Brak wizyt w tym dniu</p>
-            <p class="side-panel__empty-hint">Kliknij „+" na dniu kalendarza lub użyj przycisku powyżej.</p>
+            <p class="side-panel__empty-hint">Kliknij "+" na dniu kalendarza lub uzyj przycisku powyzej.</p>
           </div>
 
           <ul v-else class="side-panel__list">
@@ -563,7 +570,7 @@ onMounted(async () => {
               v-for="appt in selectedDayAppointments"
               :key="appt.id"
               class="side-appt"
-              :class="{ 'side-appt--cancelled': appt.status === 'Anulowana' || appt.status === 'Nieobecność' }"
+              :class="{ 'side-appt--pending': appt.status === 'Do potwierdzenia', 'side-appt--cancelled': appt.status === 'Anulowana' || appt.status.includes('Nieobec') }"
               @click="openAppointmentPopup(appt)"
             >
               <div class="side-appt__time-col">
@@ -592,7 +599,7 @@ onMounted(async () => {
     <Teleport to="body">
       <div v-if="popupAppt" class="modal-backdrop" @click.self="closePopup">
         <div class="modal appt-modal">
-          <button class="modal-close" @click="closePopup">×</button>
+          <button class="modal-close" @click="closePopup">x</button>
 
           <div v-if="!popupDeleteConfirm">
             <div class="appt-modal__header">
@@ -617,7 +624,7 @@ onMounted(async () => {
                     :disabled="popupDraftStatus === popupAppt.status || popupUpdatingStatus"
                     @click="savePopupStatus"
                   >
-                    {{ popupUpdatingStatus ? 'Zapisuję...' : 'Zapisz status' }}
+                    {{ popupUpdatingStatus ? 'Zapisuje...' : 'Zapisz status' }}
                   </button>
                 </div>
               </div>
@@ -633,23 +640,23 @@ onMounted(async () => {
                 class="app-btn app-btn--danger app-btn--sm"
                 @click="popupDeleteConfirm = true"
               >
-                Usuń wizytę
+                Usun wizyte
               </button>
               <RouterLink
                 :to="{ name: 'appointment-edit', params: { id: popupAppt.id } }"
                 class="app-btn app-btn--warning app-btn--sm"
                 @click="closePopup"
               >
-                Edytuj pełne dane
+                Edytuj pelne dane
               </RouterLink>
             </div>
           </div>
 
           <div v-else class="appt-modal__confirm-delete">
             <p class="appt-modal__confirm-text">
-              Na pewno chcesz usunąć wizytę pacjenta <strong>{{ popupAppt.patientName }}</strong>?
+              Na pewno chcesz usunac wizyte pacjenta <strong>{{ popupAppt.patientName }}</strong>?
             </p>
-            <p class="appt-modal__confirm-warn">Tej operacji nie można cofnąć.</p>
+            <p class="appt-modal__confirm-warn">Tej operacji nie mozna cofnac.</p>
             <div class="appt-modal__footer">
               <button class="app-btn app-btn--secondary app-btn--sm" @click="popupDeleteConfirm = false">
                 Anuluj
@@ -659,7 +666,7 @@ onMounted(async () => {
                 :disabled="popupDeleting"
                 @click="confirmDeleteAppt"
               >
-                {{ popupDeleting ? 'Usuwanie...' : 'Usuń wizytę' }}
+                {{ popupDeleting ? 'Usuwanie...' : 'Usun wizyte' }}
               </button>
             </div>
           </div>
@@ -912,6 +919,7 @@ onMounted(async () => {
   text-overflow: ellipsis;
 }
 
+.cal-pill--pending { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
 .cal-pill--planned { background: #dbeafe; color: #1d4ed8; }
 .cal-pill--confirmed { background: #d1fae5; color: #065f46; }
 .cal-pill--done { background: #e2e8f0; color: #475569; }
@@ -1067,6 +1075,7 @@ onMounted(async () => {
   z-index: 3;
 }
 
+.cal-week__appt.cal-pill--pending { background: #fee2e2; color: #b91c1c; border-left-color: #ef4444; }
 .cal-week__appt.cal-pill--planned { background: #dbeafe; color: #1e40af; border-left-color: #3b82f6; }
 .cal-week__appt.cal-pill--confirmed { background: #d1fae5; color: #065f46; border-left-color: #10b981; }
 .cal-week__appt.cal-pill--done { background: #e2e8f0; color: #475569; border-left-color: #94a3b8; }
@@ -1187,6 +1196,16 @@ onMounted(async () => {
 
 .side-appt--cancelled {
   opacity: 0.65;
+}
+
+.side-appt--pending {
+  background: #fff1f2;
+  border-color: #fecaca;
+}
+
+.side-appt--pending:hover {
+  background: #ffe4e6;
+  border-color: #fca5a5;
 }
 
 .side-appt--cancelled .side-appt__patient {

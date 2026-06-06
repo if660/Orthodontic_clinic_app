@@ -18,9 +18,21 @@ namespace OrthodonticClinic.Api.Data
 
         public DbSet<PatientDocument> PatientDocuments { get; set; }
 
+        public DbSet<AppUser> AppUsers { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<AppUser>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<AppUser>()
+                .HasOne(u => u.Patient)
+                .WithOne()
+                .HasForeignKey<AppUser>(u => u.PatientId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Patient>().HasData(
                 new Patient

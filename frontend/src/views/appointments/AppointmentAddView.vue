@@ -94,21 +94,10 @@
 
       <!-- Status pills -->
       <div class="appt-form__field">
-        <label class="appt-form__label">
+        <label class="appt-form__label" for="appointmentStatus">
           <span class="appt-form__field-icon">📋</span> Status
         </label>
-        <div class="status-pill-row">
-          <button
-            v-for="s in APPOINTMENT_STATUSES"
-            :key="s"
-            type="button"
-            class="status-pill"
-            :class="[statusPillClass(s), { 'status-pill--selected': form.status === s }]"
-            @click="form.status = s"
-          >
-            {{ s }}
-          </button>
-        </div>
+        <StatusSelect id="appointmentStatus" v-model="form.status" />
       </div>
 
       <!-- Notes -->
@@ -150,10 +139,11 @@ import { useRouter, useRoute } from 'vue-router'
 import PageLayout from '../../components/common/PageLayout.vue'
 import PageHeader from '../../components/common/PageHeader.vue'
 import AppAlert from '../../components/common/AppAlert.vue'
+import StatusSelect from '../../components/appointments/StatusSelect.vue'
 import { createAppointment } from '../../services/appointmentService'
 import { getDoctors } from '../../services/doctorService'
 import { getPatients } from '../../services/patientService'
-import { emptyAppointmentForm, APPOINTMENT_STATUSES, VISIT_TYPES } from '../../types/appointment'
+import { emptyAppointmentForm, VISIT_TYPES } from '../../types/appointment'
 import type { AppointmentFormPayload } from '../../types/appointment'
 import type { Doctor } from '../../types/doctor'
 import type { Patient } from '../../types/patient'

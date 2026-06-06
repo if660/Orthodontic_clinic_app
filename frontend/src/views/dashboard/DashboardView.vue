@@ -66,15 +66,23 @@ const greeting = computed(() => {
 const now = computed(() => new Date())
 const todayIso = computed(() => new Date().toISOString().slice(0, 10))
 
+const isCancelledAppointment = (appointment: Appointment) => {
+  return appointment.status === 'Anulowana' || appointment.status.includes('Odwol')
+}
+
+const activeAppointments = computed(() =>
+  appointments.value.filter((appointment) => !isCancelledAppointment(appointment)),
+)
+
 const todayAppointments = computed(() => {
   const day = todayIso.value
-  return appointments.value
+  return activeAppointments.value
     .filter((appointment) => appointment.appointmentDate.slice(0, 10) === day)
     .sort((a, b) => a.appointmentDate.localeCompare(b.appointmentDate))
 })
 
 const upcomingAppointments = computed(() => {
-  return appointments.value
+  return activeAppointments.value
     .filter((appointment) => new Date(appointment.appointmentDate) >= now.value)
     .sort((a, b) => a.appointmentDate.localeCompare(b.appointmentDate))
 })
@@ -142,7 +150,7 @@ const nextAppointments = computed(() => upcomingAppointments.value.slice(0, 6))
 const latestPatients = computed(() => patients.value.slice(-3).reverse())
 
 const scheduleAppointments = computed(() => {
-  return appointments.value
+  return activeAppointments.value
     .filter((appointment) => {
       const byDate = appointment.appointmentDate.slice(0, 10) === selectedScheduleDate.value
       const byDoctor = selectedScheduleDoctorId.value === 'all' || appointment.doctorId === selectedScheduleDoctorId.value
@@ -153,10 +161,10 @@ const scheduleAppointments = computed(() => {
 
 const calendarAppointments = computed(() => {
   if (selectedScheduleDoctorId.value === 'all') {
-    return appointments.value
+    return activeAppointments.value
   }
 
-  return appointments.value.filter((appointment) => appointment.doctorId === selectedScheduleDoctorId.value)
+  return activeAppointments.value.filter((appointment) => appointment.doctorId === selectedScheduleDoctorId.value)
 })
 
 const calendarMonthLabel = computed(() => {
@@ -267,7 +275,7 @@ const weeklyStats = computed(() => {
   const weekEnd = new Date(weekStart)
   weekEnd.setDate(weekStart.getDate() + 7)
 
-  const weekAppointments = appointments.value.filter((appointment) => {
+  const weekAppointments = activeAppointments.value.filter((appointment) => {
     const date = new Date(appointment.appointmentDate)
     return date >= weekStart && date < weekEnd
   })

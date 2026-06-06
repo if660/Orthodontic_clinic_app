@@ -1,13 +1,13 @@
 <template>
   <PageLayout>
-    <PageHeader title="Lista wizyt" subtitle="Zarządzaj i filtruj wszystkie wizyty">
+    <PageHeader title="Lista wizyt" subtitle="Zarzadzaj i filtruj wszystkie wizyty">
       <template #actions>
         <RouterLink to="/appointments" class="app-btn app-btn--ghost app-btn--sm">
           <AppIcon name="calendar" />
           Kalendarz
         </RouterLink>
         <RouterLink :to="{ name: 'appointment-add' }" class="app-btn app-btn--primary app-btn--sm">
-          + Dodaj wizytę
+          + Dodaj wizyte
         </RouterLink>
       </template>
     </PageHeader>
@@ -15,7 +15,7 @@
     <AppAlert v-if="successMessage" :message="successMessage" variant="success" @dismiss="successMessage = null" />
     <AppAlert v-if="error" :message="error" variant="error" @dismiss="error = null" />
 
-    <AppSpinner v-if="loading" label="Ładowanie..." />
+    <AppSpinner v-if="loading" label="Ladowanie..." />
 
     <template v-else>
       <div class="app-toolbar">
@@ -36,24 +36,17 @@
             {{ d.firstName }} {{ d.lastName }}
           </option>
         </select>
-      </div>
 
-      <div class="status-filter-bar">
-        <button
-          v-for="s in statusFilterOptions"
-          :key="s.value"
-          class="status-filter-btn"
-          :class="{ 'status-filter-btn--active': filterStatus === s.value }"
-          @click="filterStatus = s.value"
-        >
-          {{ s.label }}
-          <span class="status-filter-btn__count">{{ getStatusCount(s.value) }}</span>
-        </button>
+        <select v-model="filterStatus" class="filter-select" aria-label="Filtruj po statusie wizyty">
+          <option v-for="s in simpleStatusFilterOptions" :key="s.value" :value="s.value">
+            {{ s.label }}
+          </option>
+        </select>
       </div>
 
       <div class="app-card app-card--flat">
         <p v-if="filteredAppointments.length === 0" class="empty-text">
-          {{ appointments.length === 0 ? 'Brak wizyt w systemie' : 'Brak wizyt pasujących do wybranych filtrów' }}
+          {{ appointments.length === 0 ? 'Brak wizyt w systemie' : 'Brak wizyt pasujacych do wybranych filtrow' }}
         </p>
 
         <table v-else class="app-table">
@@ -71,7 +64,7 @@
             <tr
               v-for="a in filteredAppointments"
               :key="a.id"
-              :class="{ 'row--cancelled': a.status === 'Anulowana' || a.status === 'Nieobecność' }"
+              :class="{ 'row--pending': a.status === 'Do potwierdzenia', 'row--cancelled': a.status === 'Anulowana' || a.status.includes('Nieobec') }"
             >
               <td class="td-patient">{{ a.patientName }}</td>
               <td>{{ a.doctorName }}</td>
@@ -85,7 +78,7 @@
                   :to="{ name: 'appointment-details', params: { id: a.id } }"
                   class="app-btn app-btn--ghost app-btn--sm"
                 >
-                  Szczegóły
+                  Szczegoly
                 </RouterLink>
                 <RouterLink
                   :to="{ name: 'appointment-edit', params: { id: a.id } }"
@@ -93,8 +86,16 @@
                 >
                   Edytuj
                 </RouterLink>
+                <button
+                  v-if="a.status === 'Do potwierdzenia' || a.status === 'Zaplanowana'"
+                  class="app-btn app-btn--success app-btn--sm"
+                  :disabled="updatingStatusId === a.id"
+                  @click="confirmAppointment(a)"
+                >
+                  {{ updatingStatusId === a.id ? 'Potwierdzanie...' : 'Potwierdz' }}
+                </button>
                 <button class="app-btn app-btn--danger app-btn--sm" @click="onDeleteRequest(a)">
-                  Usuń
+                  Usun
                 </button>
               </td>
             </tr>
@@ -103,15 +104,15 @@
       </div>
 
       <p class="results-info">
-        Wyświetlono {{ filteredAppointments.length }} z {{ appointments.length }} wizyt
+        Wyswietlono {{ filteredAppointments.length }} z {{ appointments.length }} wizyt
       </p>
     </template>
 
     <div v-if="deleteModalVisible" class="modal-overlay" @click.self="cancelDelete">
       <div class="modal">
-        <h2 class="modal__title">Usuń wizytę</h2>
+        <h2 class="modal__title">Usun wizyte</h2>
         <p class="modal__body">
-          Czy na pewno chcesz usunąć wizytę pacjenta
+          Czy na pewno chcesz usunac wizyte pacjenta
           <strong>{{ appointmentToDelete?.patientName }}</strong>?
         </p>
         <div class="modal__actions">
@@ -119,7 +120,7 @@
             Anuluj
           </button>
           <button class="app-btn app-btn--danger" :disabled="deleting" @click="confirmDelete">
-            {{ deleting ? 'Usuwanie...' : 'Usuń' }}
+            {{ deleting ? 'Usuwanie...' : 'Usun' }}
           </button>
         </div>
       </div>
@@ -130,7 +131,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
-import { getAppointments, deleteAppointment } from '../../services/appointmentService'
+import { getAppointments, deleteAppointment, updateAppointmentStatus } from '../../services/appointmentService'
 import { getDoctors } from '../../services/doctorService'
 import PageLayout from '../../components/common/PageLayout.vue'
 import PageHeader from '../../components/common/PageHeader.vue'
@@ -147,7 +148,7 @@ const route = useRoute()
 const appointments = ref<Appointment[]>([])
 const doctors = ref<Doctor[]>([])
 const searchQuery = ref('')
-const filterStatus = ref<string>('all')
+const filterStatus = ref<string>('active')
 const filterDoctorId = ref<string | number>('all')
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -155,14 +156,26 @@ const successMessage = ref<string | null>(null)
 const appointmentToDelete = ref<Appointment | null>(null)
 const deleteModalVisible = ref(false)
 const deleting = ref(false)
+const updatingStatusId = ref<number | null>(null)
 
 const statusFilterOptions = [
+  { value: 'active', label: 'Aktywne' },
   { value: 'all', label: 'Wszystkie' },
+  { value: 'Do potwierdzenia', label: 'Do potwierdzenia' },
   { value: 'Zaplanowana', label: 'Zaplanowane' },
   { value: 'Potwierdzona', label: 'Potwierdzone' },
-  { value: 'Zakończona', label: 'Zakończone' },
+  { value: 'Zakonczona', label: 'Zakonczone' },
   { value: 'Anulowana', label: 'Anulowane' },
-  { value: 'Nieobecność', label: 'Nieobecność' },
+  { value: 'Nieobecnosc', label: 'Nieobecnosc' },
+]
+
+const simpleStatusFilterOptions = [
+  { value: 'active', label: 'Aktywne' },
+  { value: 'all', label: 'Wszystkie' },
+  { value: 'Do potwierdzenia', label: 'Do potwierdzenia' },
+  { value: 'Zaplanowana', label: 'Zaplanowana' },
+  { value: 'Zakonczona', label: 'Odbyta' },
+  { value: 'Anulowana', label: 'Anulowana' },
 ]
 
 const getStatusCount = (status: string): number => {
@@ -177,7 +190,9 @@ const filteredAppointments = computed(() => {
     list = list.filter((a) => a.doctorId === Number(filterDoctorId.value))
   }
 
-  if (filterStatus.value !== 'all') {
+  if (filterStatus.value === 'active') {
+    list = list.filter((a) => a.status !== 'Anulowana')
+  } else if (filterStatus.value !== 'all') {
     list = list.filter((a) => a.status === filterStatus.value)
   }
 
@@ -195,11 +210,12 @@ const filteredAppointments = computed(() => {
 })
 
 const statusClass = (status: string) => ({
+  'status-badge--pending': status === 'Do potwierdzenia',
   'status-badge--planned': status === 'Zaplanowana',
   'status-badge--confirmed': status === 'Potwierdzona',
-  'status-badge--done': status === 'Zakończona',
+  'status-badge--done': status.includes('Zako'),
   'status-badge--cancelled': status === 'Anulowana',
-  'status-badge--absent': status === 'Nieobecność',
+  'status-badge--absent': status.includes('Nieobec'),
 })
 
 const loadData = async () => {
@@ -210,7 +226,7 @@ const loadData = async () => {
     appointments.value = appts
     doctors.value = docs
   } catch (err) {
-    error.value = getApiErrorMessage(err, 'Nie udało się załadować danych')
+    error.value = getApiErrorMessage(err, 'Nie udalo sie zaladowac danych')
   } finally {
     loading.value = false
   }
@@ -242,10 +258,24 @@ const confirmDelete = async () => {
     successMessage.value = getAppointmentFlashMessage('deleted')
     await loadData()
   } catch (err) {
-    error.value = getApiErrorMessage(err, 'Nie udało się usunąć wizyty.')
+    error.value = getApiErrorMessage(err, 'Nie udalo sie usunac wizyty.')
     cancelDelete()
   } finally {
     deleting.value = false
+  }
+}
+
+const confirmAppointment = async (a: Appointment) => {
+  updatingStatusId.value = a.id
+  error.value = null
+  try {
+    await updateAppointmentStatus(a.id, 'Potwierdzona')
+    successMessage.value = 'Wizyta zostala potwierdzona'
+    await loadData()
+  } catch (err) {
+    error.value = getApiErrorMessage(err, 'Nie udalo sie potwierdzic wizyty.')
+  } finally {
+    updatingStatusId.value = null
   }
 }
 
@@ -325,6 +355,7 @@ onMounted(async () => {
   font-weight: 600;
 }
 
+.status-badge--pending { background: #fee2e2; color: #b91c1c; }
 .status-badge--planned { background: #dbeafe; color: #1d4ed8; }
 .status-badge--confirmed { background: #d1fae5; color: #065f46; }
 .status-badge--done { background: #e2e8f0; color: #475569; }
@@ -333,6 +364,14 @@ onMounted(async () => {
 
 .row--cancelled td {
   opacity: 0.6;
+}
+
+.row--pending td {
+  background: #fff1f2;
+}
+
+.row--pending:hover td {
+  background: #ffe4e6;
 }
 
 .td-date {

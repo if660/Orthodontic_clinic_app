@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue'
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { useIntervalFn, useNow } from '@vueuse/core'
 import { useClinicStatsStore } from './stores/clinicStats'
+import { authSession, isClinic, isPatient, logout } from './services/authService'
 
 const statsStore = useClinicStatsStore()
+const router = useRouter()
 const now = useNow({ interval: 1000 })
 
 const formattedTime = computed(() => {
@@ -28,6 +30,11 @@ onMounted(async () => {
 onUnmounted(() => {
   pause()
 })
+
+const handleLogout = () => {
+  logout()
+  router.push({ name: 'login' })
+}
 </script>
 
 <template>
@@ -45,25 +52,41 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="app-navbar__links">
-        <RouterLink to="/" class="app-navbar__link">
+      <div v-if="authSession" class="app-navbar__links">
+        <RouterLink v-if="isClinic" to="/" class="app-navbar__link">
           <span>⌂</span>
           <span>Panel główny</span>
         </RouterLink>
 
-        <RouterLink to="/patients" class="app-navbar__link">
+        <RouterLink v-if="isClinic" to="/patients" class="app-navbar__link">
           <span>Pacjenci</span>
           <span class="app-navbar__badge">{{ statsStore.patientsCount }}</span>
         </RouterLink>
 
-        <RouterLink to="/doctors" class="app-navbar__link">
+        <RouterLink v-if="isClinic" to="/doctors" class="app-navbar__link">
           <span>Lekarze</span>
           <span class="app-navbar__badge">{{ statsStore.doctorsCount }}</span>
         </RouterLink>
 
-        <RouterLink to="/appointments" class="app-navbar__link">
+        <RouterLink v-if="isClinic" to="/appointments" class="app-navbar__link">
           <span>Kalendarz</span>
         </RouterLink>
+
+        <RouterLink v-if="isClinic" to="/reports" class="app-navbar__link">
+          <span>Raporty</span>
+        </RouterLink>
+
+        <RouterLink v-if="isPatient" to="/patient" class="app-navbar__link">
+          <span>Moje wizyty</span>
+        </RouterLink>
+
+        <span class="app-navbar__user">
+          {{ authSession.role === 'Clinic' ? 'Klinika' : authSession.patientName || 'Pacjent' }}
+        </span>
+
+        <button type="button" class="app-navbar__logout" @click="handleLogout">
+          Wyloguj
+        </button>
       </div>
     </nav>
 
@@ -194,6 +217,30 @@ onUnmounted(() => {
   background: var(--color-primary);
   color: #fff;
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.app-navbar__user {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.app-navbar__logout {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--color-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 0.5rem 0.75rem;
+}
+
+.app-navbar__logout:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .page-swoop-enter-active,

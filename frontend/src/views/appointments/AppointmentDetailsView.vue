@@ -72,6 +72,7 @@ const goBack = () => router.push({ name: 'appointments' })
 const goToEdit = () => router.push({ name: 'appointment-edit', params: { id: props.id } })
 
 const statusClass = (status: string) => ({
+  'status-badge--pending': status === 'Do potwierdzenia',
   'status-badge--planned': status === 'Zaplanowana',
   'status-badge--done': status === 'Zakończona',
   'status-badge--cancelled': status === 'Anulowana',
@@ -95,6 +96,7 @@ onMounted(async () => {
 .detail-row dt { font-weight: 600; color: var(--color-text-muted); }
 
 .status-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600; }
+.status-badge--pending { background: #fee2e2; color: #b91c1c; }
 .status-badge--planned { background: #dbeafe; color: #1d4ed8; }
 .status-badge--done { background: #dcfce7; color: #15803d; }
 .status-badge--cancelled { background: #fee2e2; color: #b91c1c; }
