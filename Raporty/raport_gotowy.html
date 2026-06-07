@@ -252,6 +252,9 @@
     <li class="toc__l2"><span class="toc__num">4.4.</span>Moduł wizyt</li>
     <li class="toc__l2"><span class="toc__num">4.5.</span>Moduł dokumentów pacjenta</li>
     <li class="toc__l2"><span class="toc__num">4.6.</span>Konteneryzacja aplikacji</li>
+    <li class="toc__l2"><span class="toc__num">4.7.</span>Moduł logowania i ról użytkowników</li>
+    <li class="toc__l2"><span class="toc__num">4.8.</span>Panel pacjenta</li>
+    <li class="toc__l2"><span class="toc__num">4.9.</span>Moduł raportów wizyt</li>
     <li><span class="toc__num">5.</span>Przygotowanie projektu</li>
     <li class="toc__l2"><span class="toc__num">5.1.</span>Ustalenie tematu i podział pracy</li>
     <li class="toc__l2"><span class="toc__num">5.2.</span>Przygotowanie repozytorium i struktury projektu</li>
@@ -266,7 +269,9 @@
     <li class="toc__l2"><span class="toc__num">5.11.</span>Przygotowanie modułu dokumentów pacjenta</li>
     <li class="toc__l2"><span class="toc__num">5.12.</span>Przygotowanie panelu głównego</li>
     <li class="toc__l2"><span class="toc__num">5.13.</span>Konteneryzacja i konfiguracja Docker</li>
-    <li class="toc__l2"><span class="toc__num">5.14.</span>Integracja i sprawdzenie działania aplikacji</li>
+    <li class="toc__l2"><span class="toc__num">5.14.</span>Przygotowanie logowania i panelu pacjenta</li>
+    <li class="toc__l2"><span class="toc__num">5.15.</span>Przygotowanie modułu raportów wizyt</li>
+    <li class="toc__l2"><span class="toc__num">5.16.</span>Integracja i sprawdzenie działania aplikacji</li>
     <li><span class="toc__num">6.</span>Podsumowanie</li>
   </ul>
 </div>
@@ -323,14 +328,17 @@
   <li><strong>Patients</strong> – pacjenci kliniki,</li>
   <li><strong>Doctors</strong> – lekarze / ortodonci,</li>
   <li><strong>Appointments</strong> – wizyty przypisane do pacjentów i lekarzy,</li>
-  <li><strong>PatientDocuments</strong> – dokumenty binarne (pliki PDF, JPG, DOC) przypisane do pacjentów.</li>
+  <li><strong>PatientDocuments</strong> – dokumenty binarne (pliki PDF, JPG, DOC) przypisane do pacjentów,</li>
+  <li><strong>AppUsers</strong> – konta użytkowników aplikacji wykorzystywane do logowania i rozróżniania ról.</li>
 </ul>
 <p>Relacje w bazie pozwalają powiązać wizytę z konkretnym pacjentem oraz konkretnym lekarzem. Dokument jest powiązany z pacjentem przez klucz obcy <code>PatientId</code>. Dane binarne pliku są przechowywane jako kolumna <code>varbinary(max)</code>, co pozwala przechowywać pliki dowolnego rozmiaru bezpośrednio w bazie danych SQL Server.</p>
+<p>Baza danych została rozszerzona o tabelę użytkowników aplikacji, która umożliwia obsługę logowania oraz rozróżnienie ról użytkowników. System przewiduje role kliniki oraz pacjenta. Konto użytkownika przechowuje adres email, skrót hasła, rolę, opcjonalne powiązanie z pacjentem oraz informację, czy użytkownik musi zmienić hasło po pierwszym logowaniu.</p>
+<p>Dzięki relacji pomiędzy kontem użytkownika a pacjentem możliwe jest wyświetlanie pacjentowi wyłącznie jego własnych danych i wizyt. Flaga <code>MustChangePassword</code> pozwala wymusić zmianę hasła po utworzeniu konta przez klinikę.</p>
 <img src="3. Baza danych.png" alt="AppDbContext.cs — DbSety i dane startowe" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 1.2rem;display:block;"/>
 
 <!-- ═══════════════════ SEKCJA 4 ═══════════════════ -->
 <h1 class="section-title">4. Funkcjonalność aplikacji</h1>
-<p>Aplikacja składa się z kilku widoków i modułów. Główne funkcjonalności systemu obejmują zarządzanie pacjentami, lekarzami, wizytami, dokumentami pacjenta oraz panel główny z podsumowaniem danych.</p>
+<p>Aplikacja składa się z kilku widoków i modułów. Główne funkcjonalności systemu obejmują zarządzanie pacjentami, lekarzami, wizytami, dokumentami pacjenta, panel główny z podsumowaniem danych, logowanie z podziałem na role, panel pacjenta oraz raporty wizyt.</p>
 
 <h2 class="subsection-title">4.1. Panel główny aplikacji</h2>
 <p>Panel główny jest stroną startową aplikacji. Po wejściu do systemu użytkownik otrzymuje szybki podgląd najważniejszych informacji oraz może przejść do głównych modułów aplikacji.</p>
@@ -517,6 +525,51 @@
   <li><code>docker-compose.yml</code> — orkiestracja trzech serwisów: <code>db</code> (SQL Server 2022), <code>backend</code> (API .NET), <code>frontend</code> (Nginx); serwis <code>db</code> posiada healthcheck, a <code>backend</code> uruchamia się dopiero po jego pozytywnym wyniku.</li>
 </ul>
 <img src="4.6. Konteneryzacja aplikacji.png" alt="docker-compose.yml" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 1.2rem;display:block;"/>
+
+<h2 class="subsection-title">4.7. Moduł logowania i ról użytkowników</h2>
+<p>W aplikacji dodano mechanizm logowania użytkowników z podziałem na role. System rozróżnia konto kliniki oraz konto pacjenta. Po zalogowaniu użytkownik otrzymuje dostęp wyłącznie do widoków przeznaczonych dla swojej roli. Klinika korzysta z panelu administracyjnego, natomiast pacjent jest przekierowywany do własnego panelu pacjenta.</p>
+<p>Po stronie backendu przygotowano kontroler odpowiedzialny za logowanie, odczyt aktualnej sesji, tworzenie kont pacjentów oraz zmianę hasła. Do autoryzacji wykorzystano token sesji przesyłany z frontendu w nagłówku zapytania. Token zawiera między innymi rolę użytkownika oraz informację, czy konto wymaga zmiany hasła.</p>
+<p>Po stronie frontendu przygotowano serwis <code>authService.ts</code>, który zapisuje sesję użytkownika, dołącza token do zapytań API oraz udostępnia informacje o aktualnej roli. Routing aplikacji został zabezpieczony tak, aby pacjent nie miał dostępu do widoków kliniki, a klinika nie była przekierowywana do panelu pacjenta.</p>
+<p>W widoku szczegółów pacjenta klinika może utworzyć konto logowania dla konkretnego pacjenta, podając jego adres email. System generuje losowe hasło tymczasowe, które spełnia wymagania bezpieczeństwa. Przy pierwszym logowaniu pacjent zostaje automatycznie przekierowany do formularza zmiany hasła. Nowe hasło musi zawierać małą literę, dużą literę, cyfrę oraz znak specjalny.</p>
+<ul>
+  <li>logowanie użytkownika na podstawie emaila i hasła,</li>
+  <li>rozróżnienie ról: klinika i pacjent,</li>
+  <li>ochrona tras po stronie frontendu,</li>
+  <li>tworzenie konta pacjenta z poziomu szczegółów pacjenta,</li>
+  <li>generowanie hasła tymczasowego,</li>
+  <li>wymuszenie zmiany hasła przy pierwszym logowaniu,</li>
+  <li>walidacja siły nowego hasła.</li>
+</ul>
+<img src="Logowanie.png" alt="Ekran logowania" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 0.5rem;display:block;"/>
+<img src="BrakKonta.png" alt="Szczegóły pacjenta bez utworzonego konta logowania" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 0.5rem;display:block;"/>
+<img src="IsniejaceKonto.png" alt="Szczegóły pacjenta z istniejącym kontem logowania" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0 0 1.2rem;display:block;"/>
+
+<h2 class="subsection-title">4.8. Panel pacjenta</h2>
+<p>Dla użytkownika z rolą pacjenta przygotowano osobny panel dostępny po zalogowaniu. Widok pacjenta różni się od panelu kliniki i pokazuje wyłącznie informacje dotyczące aktualnie zalogowanego pacjenta. Dzięki temu pacjent nie ma dostępu do listy wszystkich pacjentów, lekarzy ani funkcji administracyjnych kliniki.</p>
+<p>Panel pacjenta umożliwia przeglądanie własnych wizyt oraz umówienie nowego terminu. Podczas tworzenia wizyty pacjent wybiera lekarza, datę, godzinę oraz typ wizyty. Wizyta utworzona z panelu pacjenta otrzymuje status wymagający potwierdzenia przez klinikę. Dzięki temu klinika zachowuje kontrolę nad harmonogramem i może zaakceptować lub zmienić termin zgłoszony przez pacjenta.</p>
+<p>Dodano również możliwość anulowania wizyty z poziomu panelu pacjenta. Operacja wymaga potwierdzenia, aby ograniczyć przypadkowe anulowanie terminu. Wizyty anulowane są traktowane osobno i mogą być ukrywane lub pokazywane zależnie od filtrów w widokach kliniki.</p>
+<ul>
+  <li>osobny widok dla zalogowanego pacjenta,</li>
+  <li>wyświetlanie wizyt powiązanych z kontem pacjenta,</li>
+  <li>możliwość zgłoszenia nowej wizyty,</li>
+  <li>status wizyty wymagający potwierdzenia przez klinikę,</li>
+  <li>anulowanie wizyty przez pacjenta z potwierdzeniem.</li>
+</ul>
+<img src="PanelPacjenta.png" alt="Panel pacjenta z wizytami" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 1.2rem;display:block;"/>
+
+<h2 class="subsection-title">4.9. Moduł raportów wizyt</h2>
+<p>W aplikacji dodano moduł raportów wizyt dostępny z poziomu nawigacji kliniki. Widok raportów korzysta z danych pobieranych z istniejącego API wizyt i przelicza statystyki po stronie frontendu. Dzięki temu nie było konieczne tworzenie osobnego mechanizmu raportowego po stronie backendu.</p>
+<p>Raporty pozwalają analizować wizyty według wybranego okresu oraz lekarza. Użytkownik może wybrać raport dzienny, tygodniowy lub miesięczny. Dodatkowo możliwe jest ograniczenie wyników do konkretnego lekarza albo wyświetlenie danych dla wszystkich lekarzy.</p>
+<p>Widok prezentuje łączną liczbę wizyt, liczbę wizyt według statusu oraz zestawienie wizyt według lekarzy. Dane są obliczane dynamicznie za pomocą właściwości <code>computed</code>, dzięki czemu zmiana filtrów natychmiast aktualizuje widoczne podsumowania.</p>
+<ul>
+  <li>wybór okresu raportu: dzień, tydzień lub miesiąc,</li>
+  <li>filtrowanie raportu według lekarza,</li>
+  <li>podsumowanie łącznej liczby wizyt,</li>
+  <li>liczba wizyt według statusów,</li>
+  <li>zestawienie wizyt według lekarzy,</li>
+  <li>dynamiczne przeliczanie danych po zmianie filtrów.</li>
+</ul>
+<img src="Raportywizyt.png" alt="Widok raportów wizyt" style="max-width:100%;border:1px solid #e2e8f0;border-radius:6px;margin:0.8rem 0 1.2rem;display:block;"/>
 </div>
 
 <div class="page-break"></div>
@@ -603,9 +656,19 @@
 <h2 class="subsection-title">5.13. Konteneryzacja i konfiguracja Docker</h2>
 <p>Na końcowym etapie projektu przygotowano pliki Docker umożliwiające uruchomienie całej aplikacji przez jedno polecenie <code>docker-compose up</code>. Dockerfile backendu używa wieloetapowego buildu: etap <code>build</code> oparty na obrazie SDK kompiluje projekt, a etap <code>final</code> oparty na lżejszym obrazie runtime uruchamia gotowy plik DLL. Analogicznie Dockerfile frontendu buduje statyczne pliki Vue, a następnie serwuje je przez Nginx. Plik <code>docker-compose.yml</code> definiuje sieć wewnętrzną, zmienne środowiskowe połączenia z bazą i healthcheck SQL Servera, dzięki czemu backend czeka na gotowość bazy przed uruchomieniem.</p>
 
-<h2 class="subsection-title">5.14. Integracja i sprawdzenie działania aplikacji</h2>
+<h2 class="subsection-title">5.14. Przygotowanie logowania i panelu pacjenta</h2>
+<p>W kolejnym etapie projektu przygotowano obsługę logowania oraz podział aplikacji na role użytkowników. Po stronie backendu utworzono model konta użytkownika oraz kontroler odpowiedzialny za logowanie, pobieranie aktualnej sesji, tworzenie kont pacjentów i zmianę hasła. Hasła nie są przechowywane jawnie, lecz jako skrót wygenerowany przez serwis haseł.</p>
+<p>Po stronie frontendu dodano widok logowania oraz mechanizm przechowywania sesji. Serwis autoryzacji zapisuje token użytkownika i dołącza go do kolejnych zapytań API. Router sprawdza aktualną rolę użytkownika i przekierowuje go do odpowiedniego widoku. Klinika trafia do panelu zarządzania, natomiast pacjent do własnego panelu pacjenta.</p>
+<p>W szczegółach pacjenta dodano sekcję umożliwiającą utworzenie konta logowania dla pacjenta. Klinika podaje adres email, a system generuje losowe hasło tymczasowe. Po pierwszym logowaniu pacjent musi zmienić hasło na własne, spełniające wymagania bezpieczeństwa. Mechanizm ten pozwala połączyć administracyjne tworzenie kont z bezpiecznym przejęciem konta przez pacjenta.</p>
+
+<h2 class="subsection-title">5.15. Przygotowanie modułu raportów wizyt</h2>
+<p>Moduł raportów został przygotowany jako osobny widok frontendu dostępny pod ścieżką <code>/reports</code>. Do nawigacji aplikacji dodano link „Raporty”, widoczny dla użytkownika kliniki. Widok korzysta z istniejącego serwisu wizyt i pobiera dane z tego samego API, które zasila kalendarz oraz listę wizyt.</p>
+<p>Najważniejszą częścią widoku są właściwości obliczeniowe <code>computed</code>, które filtrują wizyty według wybranego okresu i lekarza, a następnie wyliczają podsumowania. Dzięki temu raport nie wymaga dodatkowej logiki po stronie backendu, a wszystkie zmiany filtrów są od razu widoczne w interfejsie.</p>
+<p>W widoku zastosowano elementy formularzy Vue, takie jak <code>select</code> z mechanizmem <code>v-model</code>, dynamiczne renderowanie danych przez <code>v-for</code> oraz warunkowe komunikaty przez <code>v-if</code>. Moduł raportów stanowi przykład praktycznego wykorzystania danych aplikacji do przygotowania funkcji analitycznej przydatnej z punktu widzenia pracy kliniki.</p>
+
+<h2 class="subsection-title">5.16. Integracja i sprawdzenie działania aplikacji</h2>
 <p>Po przygotowaniu poszczególnych modułów sprawdzano komunikację między frontendem i backendem. Backend był uruchamiany lokalnie, a jego endpointy testowano w Swaggerze. Frontend uruchamiano jako aplikację Vite i sprawdzano, czy widoki poprawnie pobierają dane z API.</p>
-<p>W trakcie testowania sprawdzono między innymi działanie list, formularzy, walidacji, routingu, modali usuwania, kalendarza wizyt, uploadu i downloadu plików oraz panelu głównego. Dzięki temu można było upewnić się, że poszczególne części aplikacji są ze sobą połączone i działają jako jedna aplikacja SPA.</p>
+<p>W trakcie testowania sprawdzono między innymi działanie list, formularzy, walidacji, routingu, modali usuwania, kalendarza wizyt, uploadu i downloadu plików, panelu głównego, logowania, panelu pacjenta oraz modułu raportów. Dzięki temu można było upewnić się, że poszczególne części aplikacji są ze sobą połączone i działają jako jedna aplikacja SPA.</p>
 </div>
 
 <div class="page-break"></div>
@@ -622,10 +685,14 @@
   <li><strong>Realna baza danych</strong> — SQL Server z migracjami EF Core i danymi startowymi (seed),</li>
   <li><strong>Obsługa błędów</strong> — każdy endpoint otoczony blokiem try/catch zwracającym kod HTTP i komunikat JSON, po stronie frontendu komunikaty błędów wyświetlane przez komponent <code>AppAlert</code>,</li>
   <li><strong>Dane binarne</strong> — przesyłanie i pobieranie plików (PDF, JPG, DOC) powiązanych z pacjentem; pliki przechowywane jako <code>varbinary(max)</code> w bazie danych, przesyłane przez <code>multipart/form-data</code>, pobierane jako blob,</li>
+  <li><strong>Logowanie i role</strong> — osobne widoki dla kliniki i pacjenta, tworzenie kont pacjentów oraz wymuszenie zmiany hasła przy pierwszym logowaniu,</li>
+  <li><strong>Raporty</strong> — analiza wizyt według okresu, lekarza i statusu, obliczana dynamicznie po stronie frontendu,</li>
   <li><strong>Konteneryzacja</strong> — Dockerfile dla backendu i frontendu oraz plik <code>docker-compose.yml</code> z SQL Server, healthcheckiem i siecią wewnętrzną.</li>
 </ul>
 
 <p>Interfejs użytkownika obejmuje: panel główny z KPI i skrótami do modułów, interaktywny kalendarz wizyt w widoku miesięcznym i tygodniowym, listę wizyt z filtrami, formularze pacjentów i lekarzy z walidacją, widoki szczegółów z historią wizyt oraz sekcję dokumentacji pacjenta z możliwością uploadu i pobierania plików.</p>
+<p>Projekt obejmuje również mechanizm logowania z podziałem na role, panel pacjenta oraz moduł raportów wizyt. Klinika może zarządzać danymi i tworzyć konta pacjentów, natomiast pacjent po zalogowaniu ma dostęp do własnego panelu, swoich wizyt oraz możliwości zgłoszenia lub anulowania terminu.</p>
+<p>W projekcie wykorzystano wiele mechanizmów Vue, między innymi komponenty, routing, <code>v-model</code>, własny komponent formularzowy, <code>computed</code>, <code>ref</code>, <code>v-for</code>, <code>v-if</code>, obsługę zdarzeń, komunikację z API przez Axios oraz dynamiczne filtrowanie danych. Aplikacja została rozbudowana o funkcje biznesowe odpowiadające realnym potrzebom kliniki: planowanie wizyt, kontrolę statusów, dokumentację pacjenta, raportowanie oraz obsługę kont pacjentów.</p>
 
 <p>Projekt jest przechowywany w publicznym repozytorium GitHub pod adresem <strong>https://github.com/if660/Orthodontic_clinic_app</strong> i może być uruchomiony lokalnie lub w kontenerach Docker.</p>
 </div>
