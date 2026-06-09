@@ -64,6 +64,10 @@ onUnmounted(() => {
         <RouterLink to="/appointments" class="app-navbar__link">
           <span>Kalendarz</span>
         </RouterLink>
+
+        <RouterLink to="/reports" class="app-navbar__link">
+          <span>Raporty</span>
+        </RouterLink>
       </div>
     </nav>
 
